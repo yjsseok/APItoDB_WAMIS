@@ -216,9 +216,14 @@ namespace WamisDataCollector.Services
             _logAction($"  유량 일자료 수집...");
             for (var year = startDate.Year; year <= endDate.Year; year++)
             {
-                var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "year", year.ToString("yyyy") } };
+              //  var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "year", year.ToString("yyyy") } };
+                var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "year", year.ToString() } };
                 var response = await _apiClient.GetDataAsync<FlowDailyResponse>("wkw/flw_dtdata", parameters);
                 if (response?.List != null) await _dataService.BulkUpsertFlowDailyAsync(response.List, stationCode);
+                
+                {
+                    int kk = 0;
+                }
                 await Task.Delay(250);
             }
         }
@@ -226,7 +231,7 @@ namespace WamisDataCollector.Services
         private async Task CollectFlowMeasurementData(string stationCode, DateTime startDate, DateTime endDate)
         {
             _logAction($"  유량 측정성과 수집...");
-            var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "startyear", startDate.ToString("yyyy") }, { "endyear", endDate.ToString("yyyy") } };
+            var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "startyear", startDate.ToString() }, { "endyear", endDate.ToString() } };
             var response = await _apiClient.GetDataAsync<FlowMeasurementResponse>("wkw/wkw_flwsrrslst", parameters);
             if (response?.List != null) await _dataService.BulkUpsertFlowMeasurementAsync(response.List, stationCode);
             await Task.Delay(250);

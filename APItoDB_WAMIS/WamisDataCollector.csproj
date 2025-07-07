@@ -111,6 +111,9 @@
     <Compile Include="Services\DataService.cs" />
     <Compile Include="Services\DataSyncService.cs" />
     <Compile Include="Services\WamisApiClient.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -121,6 +124,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="api.md" />
+    <None Include="md\api.md" />
     <None Include="md\wamis_api_guide.md" />
     <None Include="md\wamis_api_guide_flw_w14.md" />
     <None Include="md\wamis_api_guide_flw_w15.md" />
