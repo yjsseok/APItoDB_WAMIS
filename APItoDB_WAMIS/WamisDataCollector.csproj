@@ -120,7 +120,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="md\api.md" />
+    <None Include="api.md" />
     <None Include="md\wamis_api_guide.md" />
     <None Include="md\wamis_api_guide_flw_w14.md" />
     <None Include="md\wamis_api_guide_flw_w15.md" />
