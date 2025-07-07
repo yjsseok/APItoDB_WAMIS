@@ -19,15 +19,29 @@ namespace WamisDataCollector.Services
             _logAction = logAction;
         }
 
-        public async Task PerformInitialLoadAsync(DateTime startDate, DateTime endDate)
+        public async Task PerformInitialLoadAsync(DateTime startDate, DateTime endDate, bool testMode = false) // testMode 파라미터 추가
         {
-            _logAction("초기 데이터 로드를 시작합니다...");
+            _logAction($"초기 데이터 로드를 시작합니다... (테스트 모드: {testMode})");
             await _dataService.EnsureTablesExistAsync();
-            await FetchAndStoreAllStations();
+            await FetchAndStoreAllStations(); // 모든 관측소 정보는 DB에 저장
 
             var allStations = await _dataService.GetAllStationsAsync();
+            List<StationInfo> stationsToProcess;
 
-            foreach (var station in allStations)
+            if (testMode)
+            {
+                stationsToProcess = allStations
+                    .GroupBy(s => s.StationType)
+                    .Select(g => g.First()) // 각 타입별 첫 번째 관측소만 선택
+                    .ToList();
+                _logAction($"테스트 모드: {stationsToProcess.Count}개의 대표 관측소에 대해서만 데이터 수집을 진행합니다.");
+            }
+            else
+            {
+                stationsToProcess = allStations;
+            }
+
+            foreach (var station in stationsToProcess) // 처리할 관측소 리스트 사용
             {
                 _logAction($"[{station.StationCode}] {station.Name} ({station.StationType}) 데이터 수집 시작...");
 
@@ -44,13 +58,27 @@ namespace WamisDataCollector.Services
             _logAction("초기 데이터 로드가 완료되었습니다.");
         }
 
-        public async Task PerformDailyUpdateAsync()
+        public async Task PerformDailyUpdateAsync(bool testMode = false) // testMode 파라미터 추가
         {
-            _logAction("일별 데이터 최신화를 시작합니다...");
+            _logAction($"일별 데이터 최신화를 시작합니다... (테스트 모드: {testMode})");
             var allStations = await _dataService.GetAllStationsAsync();
-            var endDate = DateTime.Today;
+            var endDate = DateTime.Today; // 또는 DateTime.Today.AddDays(-1)
+            List<StationInfo> stationsToProcess;
 
-            foreach (var station in allStations)
+            if (testMode)
+            {
+                stationsToProcess = allStations
+                    .GroupBy(s => s.StationType)
+                    .Select(g => g.First())
+                    .ToList();
+                _logAction($"테스트 모드: {stationsToProcess.Count}개의 대표 관측소에 대해서만 데이터 최신화를 진행합니다.");
+            }
+            else
+            {
+                stationsToProcess = allStations;
+            }
+
+            foreach (var station in stationsToProcess)
             {
                 _logAction($"[{station.StationCode}] {station.Name} ({station.StationType}) 데이터 최신화...");
 
@@ -65,7 +93,7 @@ namespace WamisDataCollector.Services
                         await CollectWaterLevelData(station.StationCode, lastWlDate?.AddHours(1) ?? endDate.AddDays(-3), endDate);
                         break;
                     case "WE":
-                        var lastWeDate = await _dataService.GetLastDailyRainfallDateAsync(station.StationCode);
+                        var lastWeDate = await _dataService.GetLastDailyRainfallDateAsync(station.StationCode); // 여기를 GetLastWeatherDailyDateAsync 또는 GetLastWeatherHourlyDateAsync로 수정해야 할 수 있음
                         await CollectWeatherData(station.StationCode, lastWeDate?.AddDays(1) ?? endDate.AddDays(-3), endDate);
                         break;
                     case "FLW":
@@ -85,14 +113,28 @@ namespace WamisDataCollector.Services
             _logAction("일별 데이터 최신화가 완료되었습니다.");
         }
 
-        public async Task BackfillMissingDataAsync()
+        public async Task BackfillMissingDataAsync(bool testMode = false) // testMode 파라미터 추가
         {
-            _logAction("누락 데이터 보충을 시작합니다...");
+            _logAction($"누락 데이터 보충을 시작합니다... (테스트 모드: {testMode})");
             var startDate = DateTime.Today.AddDays(-7);
-            var endDate = DateTime.Today;
+            var endDate = DateTime.Today; // 또는 DateTime.Today.AddDays(-1)
             var allStations = await _dataService.GetAllStationsAsync();
+            List<StationInfo> stationsToProcess;
 
-            foreach (var station in allStations)
+            if (testMode)
+            {
+                stationsToProcess = allStations
+                    .GroupBy(s => s.StationType)
+                    .Select(g => g.First())
+                    .ToList();
+                _logAction($"테스트 모드: {stationsToProcess.Count}개의 대표 관측소에 대해서만 누락 데이터 보충을 진행합니다.");
+            }
+            else
+            {
+                stationsToProcess = allStations;
+            }
+
+            foreach (var station in stationsToProcess)
             {
                 _logAction($"[{station.StationCode}] {station.Name} ({station.StationType}) 최근 7일 데이터 보충...");
                 switch (station.StationType)

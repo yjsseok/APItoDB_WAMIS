@@ -43,21 +43,36 @@ namespace WamisDataCollector
         {
             var startDate = _dtpStartDate.Value;
             var endDate = _dtpEndDate.Value;
+            bool isTestMode = _chkTestMode.Checked; // 테스트 모드 상태 확인
 
-            if (MessageBox.Show($"{startDate:yyyy-MM-dd}부터 {endDate:yyyy-MM-dd}까지의 전체 데이터를 수집합니다. 시간이 오래 걸릴 수 있습니다. 계속하시겠습니까?", "초기 데이터 로드", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            if (MessageBox.Show($"{startDate:yyyy-MM-dd}부터 {endDate:yyyy-MM-dd}까지의 {(isTestMode ? "테스트 모드 " : "")}전체 데이터를 수집합니다. 시간이 오래 걸릴 수 있습니다. 계속하시겠습니까?",
+                                $"초기 데이터 로드{(isTestMode ? " (테스트)" : "")}",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                await RunTask(async () => await _syncService.PerformInitialLoadAsync(startDate, endDate));
+                await RunTask(async () => await _syncService.PerformInitialLoadAsync(startDate, endDate, isTestMode)); // testMode 전달
             }
         }
 
         private async void BtnDailyUpdate_Click(object sender, EventArgs e)
         {
-            await RunTask(async () => await _syncService.PerformDailyUpdateAsync());
+            bool isTestMode = _chkTestMode.Checked; // 테스트 모드 상태 확인
+            if (MessageBox.Show($"일별 데이터 최신화를 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까?",
+                                $"일별 최신화{(isTestMode ? " (테스트)" : "")}",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                await RunTask(async () => await _syncService.PerformDailyUpdateAsync(isTestMode)); // testMode 전달
+            }
         }
 
         private async void BtnBackfill_Click(object sender, EventArgs e)
         {
-            await RunTask(async () => await _syncService.BackfillMissingDataAsync());
+            bool isTestMode = _chkTestMode.Checked; // 테스트 모드 상태 확인
+            if (MessageBox.Show($"누락 데이터 보충을 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까? (최근 7일)",
+                                $"누락 데이터 보충{(isTestMode ? " (테스트)" : "")}",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                await RunTask(async () => await _syncService.BackfillMissingDataAsync(isTestMode)); // testMode 전달
+            }
         }
 
         private async Task RunTask(Func<Task> task)
