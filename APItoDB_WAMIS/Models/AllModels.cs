@@ -82,7 +82,10 @@ namespace WamisDataCollector.Models
     public class FlowDailyData
     {
         [JsonProperty("ymd")] public string Ymd { get; set; }
-        [JsonProperty("fw")] public double? Flow { get; set; }
+
+        [JsonProperty("fw")]
+        [JsonConverter(typeof(SafeDoubleConverter))] // 커스텀 컨버터 적용
+        public double? Flow { get; set; }
     }
     public class FlowDailyResponse { public List<FlowDailyData> List { get; set; } }
 
