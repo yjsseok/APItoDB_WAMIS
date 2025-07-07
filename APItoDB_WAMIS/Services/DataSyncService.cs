@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq; // LINQ 사용을 위해 추가
+using System.Linq;
 using System.Threading.Tasks;
 using WamisDataCollector.Models;
+using log4net; 
 
 namespace WamisDataCollector.Services
 {
@@ -11,14 +12,16 @@ namespace WamisDataCollector.Services
         private readonly WamisApiClient _apiClient;
         private readonly DataService _dataService;
         private readonly Action<string> _logAction;
+        private readonly ILog _log; 
 
-        public DataSyncService(WamisApiClient apiClient, DataService dataService, Action<string> logAction)
+        // 생성자 수정
+        public DataSyncService(WamisApiClient apiClient, DataService dataService, Action<string> logAction, ILog log)
         {
             _apiClient = apiClient;
             _dataService = dataService;
             _logAction = logAction;
+            _log = log; 
         }
-
         /// <summary>
         /// 초기 DB입력
         /// </summary>
@@ -72,9 +75,13 @@ namespace WamisDataCollector.Services
         /// <returns></returns>
         public async Task PerformDailyUpdateAsync(bool testMode = false) 
         {
+            
+
             _logAction($"일별 데이터 최신화를 시작합니다... (테스트 모드: {testMode})");
             var allStations = await _dataService.GetAllStationsAsync();
             var endDate = DateTime.Today; // 또는 DateTime.Today.AddDays(-1)
+            _log.Info($"===== 일별 데이터 최신화 작업 시작: {endDate:yyyy-MM-dd} =====");
+
             List<StationInfo> stationsToProcess;
 
             if (testMode)
@@ -129,6 +136,7 @@ namespace WamisDataCollector.Services
                     //    break;
                 }
             }
+            _log.Info("일별 데이터 최신화가 성공적으로 완료되었습니다.");
             _logAction("일별 데이터 최신화가 완료되었습니다.");
         }
 

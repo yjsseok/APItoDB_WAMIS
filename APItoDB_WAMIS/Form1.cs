@@ -3,12 +3,14 @@ using System.Configuration;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WamisDataCollector.Services;
+using log4net;
 
 namespace WamisDataCollector
 {
     public partial class Form1 : Form
     {
         private readonly DataSyncService _syncService;
+        private static readonly ILog log = LogManager.GetLogger(typeof(Form1)); 
 
         public Form1()
         {
@@ -30,10 +32,11 @@ namespace WamisDataCollector
 
                 var apiClient = new WamisApiClient(apiKey, baseUrl, this.Log);
                 var dataService = new DataService(connectionString, this.Log);
-                _syncService = new DataSyncService(apiClient, dataService, this.Log);
+                _syncService = new DataSyncService(apiClient, dataService, this.Log, log);
             }
             catch (Exception ex)
             {
+                log.Fatal("설정 파일 로드 중 심각한 오류 발생", ex); 
                 MessageBox.Show($"설정 파일(App.config) 로드 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
@@ -86,7 +89,9 @@ namespace WamisDataCollector
             }
             catch (Exception ex)
             {
+
                 Log($"[오류] {ex.Message}\n{ex.StackTrace}");
+                log.Error("작업 중 오류 발생", ex);
                 MessageBox.Show("작업 중 오류가 발생했습니다. 로그를 확인하세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
