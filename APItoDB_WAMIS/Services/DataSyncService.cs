@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq; // LINQ 사용을 위해 추가
 using System.Threading.Tasks;
 using WamisDataCollector.Models;
 
@@ -124,12 +124,32 @@ namespace WamisDataCollector.Services
 
             foreach (var endpoint in apiEndpoints)
             {
-                var stations = await _apiClient.GetDataAsync<StationResponse>(endpoint.Value, new Dictionary<string, string>());
-                if (stations?.List != null)
+                var stationResponse = await _apiClient.GetDataAsync<StationResponse>(endpoint.Value, new Dictionary<string, string>());
+                if (stationResponse?.List != null && stationResponse.List.Any()) // 리스트가 null이 아니고 비어있지 않은지 확인
                 {
-                    await _dataService.UpsertStationsAsync(stations.List, endpoint.Key);
+                    // StationCode 기준으로 중복 제거 (첫 번째 항목 우선)
+                    // StationCode가 null이거나 빈 경우를 필터링하여 GroupBy 전에 문제를 방지
+                    var distinctStations = stationResponse.List
+                        .Where(s => !string.IsNullOrEmpty(s.StationCode)) // StationCode가 유효한 것만 대상으로 함
+                        .GroupBy(s => s.StationCode)
+                        .Select(g => g.First())
+                        .ToList();
+
+                    if (distinctStations.Any()) // 중복 제거 후에도 데이터가 있다면
+                    {
+                        _logAction($"  {endpoint.Key} 유형 관측소 목록 API 응답: {stationResponse.List.Count}개 수신, 중복 제거 후 {distinctStations.Count}개 처리 대상.");
+                        await _dataService.UpsertStationsAsync(distinctStations, endpoint.Key);
+                    }
+                    else
+                    {
+                        _logAction($"  {endpoint.Key} 유형 관측소 목록 API 응답: {stationResponse.List.Count}개 수신, 유효한 StationCode를 가진 처리 대상 없음.");
+                    }
                 }
-                await Task.Delay(200);
+                else
+                {
+                     _logAction($"  {endpoint.Key} 유형 관측소 목록 API 응답이 없거나 비어있습니다.");
+                }
+                await Task.Delay(200); // 기존 지연 시간 유지
             }
         }
 
