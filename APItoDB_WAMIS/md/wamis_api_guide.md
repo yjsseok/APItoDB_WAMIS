@@ -17,7 +17,7 @@
 
 선택한 강수량 관측소의 상세 제원 정보를 조회합니다.
 
-### 엔드포인트 정보
+### 엔드포인트 정보 "C:\Users\yjs95\Desktop\api.md"
 
 - **HTTP Method**: `GET`
 - **Request URL**: `http://www.wamis.go.kr:8080/wamis/openapi/wkw/rf_obsinfo`

@@ -28,12 +28,10 @@ namespace WamisDataCollector.Services
 
             var queryString = await new FormUrlEncodedContent(parameters).ReadAsStringAsync();
             var requestUrl = $"{_baseUrl}/{endpoint}?{queryString}";
-
+            /////////////////////////////////////////////////////////////////////////////////    _logAction($"[API 요청] {requestUrl}");
             {
                 int kkk = 0;
             }
-            _logAction($"[API 요청] {requestUrl}");
-
             try
             {
                 var response = await _httpClient.GetAsync(requestUrl);

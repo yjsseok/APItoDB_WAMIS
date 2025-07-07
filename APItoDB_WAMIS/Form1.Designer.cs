@@ -26,7 +26,6 @@
             this._progressBar = new System.Windows.Forms.ProgressBar();
             this.lblStartDate = new System.Windows.Forms.Label();
             this.lblEndDate = new System.Windows.Forms.Label();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this._chkTestMode = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
@@ -126,16 +125,6 @@
             this.lblEndDate.TabIndex = 8;
             this.lblEndDate.Text = "종료일:";
             // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(0, 0);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(104, 19);
-            this.checkBox1.TabIndex = 9;
-            this.checkBox1.Text = "checkBox1";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
             // _chkTestMode
             // 
             this._chkTestMode.AutoSize = true;
@@ -152,7 +141,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(896, 701);
             this.Controls.Add(this._chkTestMode);
-            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.lblEndDate);
             this.Controls.Add(this.lblStartDate);
             this.Controls.Add(this._progressBar);
@@ -182,7 +170,6 @@
         private System.Windows.Forms.ProgressBar _progressBar;
         private System.Windows.Forms.Label lblStartDate;
         private System.Windows.Forms.Label lblEndDate;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.CheckBox _chkTestMode;
     }
 }

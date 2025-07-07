@@ -146,6 +146,7 @@
     <None Include="md\wamis_api_guide_wl_w6.md" />
     <None Include="md\wamis_api_guide_wl_w7.md" />
     <None Include="md\wamis_api_guide_wl_w8.md" />
+    <None Include="md\wamis_api_guide_wl_w9.md" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
