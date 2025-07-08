@@ -7,12 +7,12 @@ using WamisDataCollector.Models;
 
 namespace WamisDataCollector.Services
 {
-    public class DataService
+    public class Wamis_DataService
     {
         private readonly string _connectionString;
         private readonly Action<string> _logAction;
 
-        public DataService(string connectionString, Action<string> logAction = null)
+        public Wamis_DataService(string connectionString, Action<string> logAction = null)
         {
             _connectionString = connectionString;
             _logAction = logAction ?? Console.WriteLine;
@@ -74,7 +74,6 @@ namespace WamisDataCollector.Services
                 _logAction("데이터베이스 테이블 준비 완료.");
             }
         }
-
 
         /// <summary>
         /// 모든 관측소 정보 불러오기(API)
@@ -274,7 +273,6 @@ namespace WamisDataCollector.Services
                 _logAction($"{uniqueData.Count}개의 강수량 월자료가 처리되었습니다.");
             }
         }
-
        
         /// <summary>
         /// 수위자료 입력(DB)
@@ -508,44 +506,6 @@ namespace WamisDataCollector.Services
             }
         }
 
-        //유사량 미사용
-        //public async Task BulkUpsertFlowMeasurementAsync(List<FlowMeasurementData> data, string stationCode)
-        //{
-        //    if (data == null || !data.Any()) return;
-        //    var uniqueData = new Dictionary<DateTime, (double? wl, double? flow)>();
-        //    foreach (var item in data)
-        //    {
-        //        if (DateTime.TryParseExact(item.ObsYmd, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var obsDate))
-        //        {
-        //            uniqueData[obsDate.Date] = (item.AvgWl, item.Flow);
-        //        }
-        //    }
-        //    if (!uniqueData.Any()) return;
-
-        //    var stationCodes = Enumerable.Repeat(stationCode, uniqueData.Count).ToList();
-        //    var obsDates = uniqueData.Keys.ToList();
-        //    var wls = uniqueData.Values.Select(v => v.wl).ToList();
-        //    var flows = uniqueData.Values.Select(v => v.flow).ToList();
-
-        //    using (var conn = new NpgsqlConnection(_connectionString))
-        //    {
-        //        await conn.OpenAsync();
-        //        var commandText = @"INSERT INTO flow_measurements (station_code, obs_date, avg_wl, flow) SELECT * FROM UNNEST(@p1, @p2, @p3, @p4) ON CONFLICT (station_code, obs_date) DO UPDATE SET avg_wl = EXCLUDED.avg_wl, flow = EXCLUDED.flow;";
-        //        using (var cmd = new NpgsqlCommand(commandText, conn))
-        //        {
-        //            cmd.Parameters.AddWithValue("p1", stationCodes);
-        //            cmd.Parameters.AddWithValue("p2", obsDates);
-        //            cmd.Parameters.AddWithValue("p3", wls);
-        //            cmd.Parameters.AddWithValue("p4", flows);
-        //            await cmd.ExecuteNonQueryAsync();
-        //        }
-        //        _logAction($"{uniqueData.Count}개의 유량 측정성과가 처리되었습니다.");
-        //    }
-        //} 
-
-
-
-
         /// <summary>
         /// 댐자료 입력(DB)
         /// </summary>
@@ -700,7 +660,6 @@ namespace WamisDataCollector.Services
             }
         }
 
-
         /// <summary>
         /// 마지막 일자 호출
         /// </summary>
@@ -723,7 +682,6 @@ namespace WamisDataCollector.Services
                 }
             }
         }
-
         public async Task<DateTime?> GetLastHourlyRainfallDateAsync(string stationCode) => await GetLastDateAsync("rf_hourly", "obs_time", "station_code", stationCode);
         public async Task<DateTime?> GetLastDailyRainfallDateAsync(string stationCode) => await GetLastDateAsync("rf_daily", "obs_date", "station_code", stationCode);
         public async Task<DateTime?> GetLastMonthlyRainfallDateAsync(string stationCode) => await GetLastDateAsync("rf_monthly", "obs_month", "station_code", stationCode);
@@ -738,3 +696,37 @@ namespace WamisDataCollector.Services
         public async Task<DateTime?> GetLastDamMonthlyDateAsync(string damCode) => await GetLastDateAsync("dam_monthly", "obs_month", "dam_code", damCode);
     }
 }
+        //유사량 미사용
+        //public async Task BulkUpsertFlowMeasurementAsync(List<FlowMeasurementData> data, string stationCode)
+        //{
+        //    if (data == null || !data.Any()) return;
+        //    var uniqueData = new Dictionary<DateTime, (double? wl, double? flow)>();
+        //    foreach (var item in data)
+        //    {
+        //        if (DateTime.TryParseExact(item.ObsYmd, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var obsDate))
+        //        {
+        //            uniqueData[obsDate.Date] = (item.AvgWl, item.Flow);
+        //        }
+        //    }
+        //    if (!uniqueData.Any()) return;
+
+        //    var stationCodes = Enumerable.Repeat(stationCode, uniqueData.Count).ToList();
+        //    var obsDates = uniqueData.Keys.ToList();
+        //    var wls = uniqueData.Values.Select(v => v.wl).ToList();
+        //    var flows = uniqueData.Values.Select(v => v.flow).ToList();
+
+        //    using (var conn = new NpgsqlConnection(_connectionString))
+        //    {
+        //        await conn.OpenAsync();
+        //        var commandText = @"INSERT INTO flow_measurements (station_code, obs_date, avg_wl, flow) SELECT * FROM UNNEST(@p1, @p2, @p3, @p4) ON CONFLICT (station_code, obs_date) DO UPDATE SET avg_wl = EXCLUDED.avg_wl, flow = EXCLUDED.flow;";
+        //        using (var cmd = new NpgsqlCommand(commandText, conn))
+        //        {
+        //            cmd.Parameters.AddWithValue("p1", stationCodes);
+        //            cmd.Parameters.AddWithValue("p2", obsDates);
+        //            cmd.Parameters.AddWithValue("p3", wls);
+        //            cmd.Parameters.AddWithValue("p4", flows);
+        //            await cmd.ExecuteNonQueryAsync();
+        //        }
+        //        _logAction($"{uniqueData.Count}개의 유량 측정성과가 처리되었습니다.");
+        //    }
+        //} 

@@ -1,6 +1,6 @@
 ﻿namespace WamisDataCollector
 {
-    partial class Form1
+    partial class MainFrm
     {
         private System.ComponentModel.IContainer components = null;
 

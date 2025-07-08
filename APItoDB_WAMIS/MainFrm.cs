@@ -4,35 +4,48 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WamisDataCollector.Services;
 using log4net;
+using System.Collections.Generic;
 
 namespace WamisDataCollector
 {
-    public partial class Form1 : Form
+    public partial class MainFrm : Form
     {
-        private readonly DataSyncService _syncService;
-        private static readonly ILog log = LogManager.GetLogger(typeof(Form1)); 
+        private readonly Wamis_DataSyncService _syncService;
+        private static readonly ILog log = LogManager.GetLogger(typeof(MainFrm)); 
 
-        public Form1()
+        public MainFrm()
         {
-            // 디자이너 파일에 정의된 UI 컨트롤들을 초기화합니다.
             InitializeComponent();
 
-            // 서비스 초기화
             try
             {
-                // App.config에서 설정 읽기
                 var apiKey = ConfigurationManager.AppSettings["WamisApiKey"];
                 var baseUrl = ConfigurationManager.AppSettings["WamisBaseUrl"];
                 var connectionString = ConfigurationManager.ConnectionStrings["PostgreSqlConnection"].ConnectionString;
 
-                if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(baseUrl) || string.IsNullOrEmpty(connectionString))
+                var missingSettings = new List<string>();
+                if (string.IsNullOrEmpty(apiKey))
                 {
-                    throw new InvalidOperationException("App.config 파일에 API 또는 데이터베이스 연결 설정이 올바르지 않습니다.");
+                    missingSettings.Add("WamisApiKey");
+                }
+                if (string.IsNullOrEmpty(baseUrl))
+                {
+                    missingSettings.Add("WamisBaseUrl");
+                }
+                if (string.IsNullOrEmpty(connectionString))
+                {
+                    missingSettings.Add("PostgreSqlConnection");
                 }
 
-                var apiClient = new WamisApiClient(apiKey, baseUrl, this.Log);
-                var dataService = new DataService(connectionString, this.Log);
-                _syncService = new DataSyncService(apiClient, dataService, this.Log, log);
+                if (missingSettings.Count > 0)
+                {
+                    var errorMessage = $"App.config 파일에 다음 설정이 올바르지 않거나 누락되었습니다: {string.Join(", ", missingSettings)}";
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                var apiClient = new Wamis_ApiClient(apiKey, baseUrl, this.Log);
+                var dataService = new Wamis_DataService(connectionString, this.Log);
+                _syncService = new Wamis_DataSyncService(apiClient, dataService, this.Log, log);
             }
             catch (Exception ex)
             {
@@ -46,35 +59,35 @@ namespace WamisDataCollector
         {
             var startDate = _dtpStartDate.Value;
             var endDate = _dtpEndDate.Value;
-            bool isTestMode = _chkTestMode.Checked; // 테스트 모드 상태 확인
+            bool isTestMode = _chkTestMode.Checked; 
 
             if (MessageBox.Show($"{startDate:yyyy-MM-dd}부터 {endDate:yyyy-MM-dd}까지의 {(isTestMode ? "테스트 모드 " : "")}전체 데이터를 수집합니다. 시간이 오래 걸릴 수 있습니다. 계속하시겠습니까?",
                                 $"초기 데이터 로드{(isTestMode ? " (테스트)" : "")}",
                                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                await RunTask(async () => await _syncService.PerformInitialLoadAsync(startDate, endDate, isTestMode)); // testMode 전달
+                await RunTask(async () => await _syncService.PerformInitialLoadAsync(startDate, endDate, isTestMode)); 
             }
         }
 
         private async void BtnDailyUpdate_Click(object sender, EventArgs e)
         {
-            bool isTestMode = _chkTestMode.Checked; // 테스트 모드 상태 확인
+            bool isTestMode = _chkTestMode.Checked; 
             if (MessageBox.Show($"일별 데이터 최신화를 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까?",
                                 $"일별 최신화{(isTestMode ? " (테스트)" : "")}",
                                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                await RunTask(async () => await _syncService.PerformDailyUpdateAsync(isTestMode)); // testMode 전달
+                await RunTask(async () => await _syncService.PerformDailyUpdateAsync(isTestMode)); 
             }
         }
 
         private async void BtnBackfill_Click(object sender, EventArgs e)
         {
-            bool isTestMode = _chkTestMode.Checked; // 테스트 모드 상태 확인
+            bool isTestMode = _chkTestMode.Checked; 
             if (MessageBox.Show($"누락 데이터 보충을 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까? (최근 7일)",
                                 $"누락 데이터 보충{(isTestMode ? " (테스트)" : "")}",
                                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                await RunTask(async () => await _syncService.BackfillMissingDataAsync(isTestMode)); // testMode 전달
+                await RunTask(async () => await _syncService.BackfillMissingDataAsync(isTestMode)); 
             }
         }
 

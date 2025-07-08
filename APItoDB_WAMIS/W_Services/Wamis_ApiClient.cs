@@ -6,29 +6,29 @@ using Newtonsoft.Json;
 
 namespace WamisDataCollector.Services
 {
-    public class WamisApiClient
+    public class Wamis_ApiClient
     {
         private readonly HttpClient _httpClient;
         //private readonly string _apiKey;
         private readonly string _baseUrl;
         private readonly Action<string> _logAction;
 
-        public WamisApiClient(string apiKey, string baseUrl, Action<string> logAction = null)
+        public Wamis_ApiClient(string apiKey, string baseUrl, Action<string> logAction = null)
         {
             _httpClient = new HttpClient();
-           // _apiKey = apiKey;
             _baseUrl = baseUrl;
             _logAction = logAction ?? Console.WriteLine;
+           // _apiKey = apiKey;
         }
 
         public async Task<T> GetDataAsync<T>(string endpoint, Dictionary<string, string> parameters)
         {
-          //  parameters["serviceKey"] = _apiKey;
             parameters["output"] = "json";
+          //  parameters["serviceKey"] = _apiKey;
 
             var queryString = await new FormUrlEncodedContent(parameters).ReadAsStringAsync();
             var requestUrl = $"{_baseUrl}/{endpoint}?{queryString}";
-            /////////////////////////////////////////////////////////////////////////////////    _logAction($"[API 요청] {requestUrl}");
+            /////////////////////////////////////////////////////////////////////////////////    _logAction($"[API 요청] {requestUrl}"); 필요시 사용
             {
                 int kkk = 0;
             }

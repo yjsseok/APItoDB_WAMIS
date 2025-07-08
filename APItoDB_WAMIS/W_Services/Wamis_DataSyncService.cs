@@ -7,15 +7,15 @@ using log4net;
 
 namespace WamisDataCollector.Services
 {
-    public class DataSyncService
+    public class Wamis_DataSyncService
     {
-        private readonly WamisApiClient _apiClient;
-        private readonly DataService _dataService;
+        private readonly Wamis_ApiClient _apiClient;
+        private readonly Wamis_DataService _dataService;
         private readonly Action<string> _logAction;
         private readonly ILog _log; 
 
         // 생성자 수정
-        public DataSyncService(WamisApiClient apiClient, DataService dataService, Action<string> logAction, ILog log)
+        public Wamis_DataSyncService(Wamis_ApiClient apiClient, Wamis_DataService dataService, Action<string> logAction, ILog log)
         {
             _apiClient = apiClient;
             _dataService = dataService;
@@ -31,7 +31,8 @@ namespace WamisDataCollector.Services
         /// <returns></returns>
         public async Task PerformInitialLoadAsync(DateTime startDate, DateTime endDate, bool testMode = false)
         {
-            _logAction($"초기 데이터 로드를 시작합니다... (테스트 모드: {testMode})");
+            _log.Info($"===== 초기 데이터 로드 시작{startDate:yyyy-MM-dd} ~ {endDate:yyyy-MM-dd} =====");
+            _logAction($"초기 데이터 로드를 시작합니다... (테스트 모드: {testMode}) - {startDate:yyyy-MM-dd}{endDate:yyyy-MM-dd}");
             await _dataService.EnsureTablesExistAsync();
             await FetchAndStoreAllStations(); 
 
@@ -65,6 +66,7 @@ namespace WamisDataCollector.Services
                   //  case "WKW": await CollectFlowMeasurementData(station.StationCode, startDate, endDate); break;
                 }
             }
+            _log.Info("초기 데이터 로드가 완료되었습니다.");
             _logAction("초기 데이터 로드가 완료되었습니다.");
         }
 
@@ -147,10 +149,13 @@ namespace WamisDataCollector.Services
         /// <returns></returns>
         public async Task BackfillMissingDataAsync(bool testMode = false) 
         {
+            
             _logAction($"누락 데이터 보충을 시작합니다... (테스트 모드: {testMode})");
             var startDate = DateTime.Today.AddDays(-7);
             var endDate = DateTime.Today; // 또는 DateTime.Today.AddDays(-1)
             var allStations = await _dataService.GetAllStationsAsync();
+            _log.Info($"===== 누락 데이터 보충 작업 시작: {startDate:yyyy-MM-dd} ~ {endDate:yyyy-MM-dd} =====");
+
             List<StationInfo> stationsToProcess;
 
             if (testMode)
@@ -179,6 +184,7 @@ namespace WamisDataCollector.Services
                 //    case "WKW": await CollectFlowMeasurementData(station.StationCode, startDate, endDate); break;
                 }
             }
+            _log.Info("누락 데이터 보충이 성공적으로 완료되었습니다.");
             _logAction("누락 데이터 보충이 완료되었습니다.");
         }
 
@@ -247,18 +253,18 @@ namespace WamisDataCollector.Services
                 var hourlyParams = new Dictionary<string, string> { { "obscd", stationCode }, { "startdt", yearStartDate.ToString("yyyyMMdd") }, { "enddt", yearEndDate.ToString("yyyyMMdd") } };
                 var hourlyResponse = await _apiClient.GetDataAsync<RainfallResponse>("wkw/rf_hrdata", hourlyParams);
                 if (hourlyResponse?.List != null) await _dataService.BulkUpsertRainfallHourlyAsync(hourlyResponse.List, stationCode);
-                await Task.Delay(250);
+                await Task.Delay(100);
             }
             _logAction($"  강수량 일자료 수집...");
             var dailyParams = new Dictionary<string, string> { { "obscd", stationCode }, { "startdt", startDate.ToString("yyyyMMdd") }, { "enddt", endDate.ToString("yyyyMMdd") } };
             var dailyResponse = await _apiClient.GetDataAsync<RainfallResponse>("wkw/rf_dtdata", dailyParams);
             if (dailyResponse?.List != null) await _dataService.BulkUpsertRainfallDailyAsync(dailyResponse.List, stationCode);
-            await Task.Delay(250);
+            await Task.Delay(100);
             _logAction($"  강수량 월자료 수집...");
             var monthlyParams = new Dictionary<string, string> { { "obscd", stationCode }, { "startyear", startDate.ToString("yyyy") }, { "endyear", endDate.ToString("yyyy") } };
             var monthlyResponse = await _apiClient.GetDataAsync<RainfallResponse>("wkw/rf_mndata", monthlyParams);
             if (monthlyResponse?.List != null) await _dataService.BulkUpsertRainfallMonthlyAsync(monthlyResponse.List, stationCode);
-            await Task.Delay(250);
+            await Task.Delay(100);
         }
 
         private async Task CollectWaterLevelData(string stationCode, DateTime startDate, DateTime endDate, bool collectHourly = true, bool collectDaily = true)
@@ -273,7 +279,7 @@ namespace WamisDataCollector.Services
                     var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "startdt", monthStartDate.ToString("yyyyMMdd") }, { "enddt", monthEndDate.ToString("yyyyMMdd") } };
                     var response = await _apiClient.GetDataAsync<WaterLevelResponse>("wkw/wl_hrdata", parameters);
                     if (response?.List != null) await _dataService.BulkUpsertWaterLevelHourlyAsync(response.List, stationCode);
-                    await Task.Delay(250);
+                    await Task.Delay(100);
                 }
             }
 
@@ -283,7 +289,7 @@ namespace WamisDataCollector.Services
                 var dailyParams = new Dictionary<string, string> { { "obscd", stationCode }, { "startdt", startDate.ToString("yyyyMMdd") }, { "enddt", endDate.ToString("yyyyMMdd") } };
                 var dailyResponse = await _apiClient.GetDataAsync<WaterLevelResponse>("wkw/wl_dtdata", dailyParams);
                 if (dailyResponse?.List != null) await _dataService.BulkUpsertWaterLevelDailyAsync(dailyResponse.List, stationCode);
-                await Task.Delay(250);
+                await Task.Delay(100);
             }
         }
 
@@ -297,13 +303,13 @@ namespace WamisDataCollector.Services
                 var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "startdt", yearStartDate.ToString("yyyyMMdd") }, { "enddt", yearEndDate.ToString("yyyyMMdd") } };
                 var response = await _apiClient.GetDataAsync<WeatherResponse>("wkw/we_hrdata", parameters);
                 if (response?.List != null) await _dataService.BulkUpsertWeatherHourlyAsync(response.List, stationCode);
-                await Task.Delay(250);
+                await Task.Delay(100);
             }
             _logAction($"  기상 일자료 수집...");
             var dailyParams = new Dictionary<string, string> { { "obscd", stationCode }, { "startdt", startDate.ToString("yyyyMMdd") }, { "enddt", endDate.ToString("yyyyMMdd") } };
             var dailyResponse = await _apiClient.GetDataAsync<WeatherResponse>("wkw/we_dtdata", dailyParams);
             if (dailyResponse?.List != null) await _dataService.BulkUpsertWeatherDailyAsync(dailyResponse.List, stationCode);
-            await Task.Delay(250);
+            await Task.Delay(100);
         }
 
         private async Task CollectFlowDailyData(string stationCode, DateTime startDate, DateTime endDate)
@@ -314,7 +320,7 @@ namespace WamisDataCollector.Services
                 var parameters = new Dictionary<string, string> { { "obscd", stationCode }, { "year", year.ToString() } };
                 var response = await _apiClient.GetDataAsync<FlowDailyResponse>("wkw/flw_dtdata", parameters);
                 if (response?.List != null) await _dataService.BulkUpsertFlowDailyAsync(response.List, stationCode);
-                await Task.Delay(250);
+                await Task.Delay(100);
             }
         }
 
@@ -328,18 +334,18 @@ namespace WamisDataCollector.Services
                 var parameters = new Dictionary<string, string> { { "damcd", damCode }, { "startdt", yearStartDate.ToString("yyyyMMdd") }, { "enddt", yearEndDate.ToString("yyyyMMdd") } };
                 var response = await _apiClient.GetDataAsync<DamResponse>("wkd/mn_hrdata", parameters);
                 if (response?.List != null) await _dataService.BulkUpsertDamHourlyAsync(response.List, damCode);
-                await Task.Delay(250);
+                await Task.Delay(100);
             }
             _logAction($"  댐 일자료 수집...");
             var dailyParams = new Dictionary<string, string> { { "damcd", damCode }, { "startdt", startDate.ToString("yyyyMMdd") }, { "enddt", endDate.ToString("yyyyMMdd") } };
             var dailyResponse = await _apiClient.GetDataAsync<DamResponse>("wkd/mn_dtdata", dailyParams);
             if (dailyResponse?.List != null) await _dataService.BulkUpsertDamDailyAsync(dailyResponse.List, damCode);
-            await Task.Delay(250);
+            await Task.Delay(100);
             _logAction($"  댐 월자료 수집...");
             var monthlyParams = new Dictionary<string, string> { { "damcd", damCode }, { "startyear", startDate.ToString("yyyy") }, { "endyear", endDate.ToString("yyyy") } };
             var monthlyResponse = await _apiClient.GetDataAsync<DamResponse>("wkd/mn_mndata", monthlyParams);
             if (monthlyResponse?.List != null) await _dataService.BulkUpsertDamMonthlyAsync(monthlyResponse.List, damCode);
-            await Task.Delay(250);
+            await Task.Delay(100);
         }
 
         //private async Task CollectFlowMeasurementData(string stationCode, DateTime startDate, DateTime endDate)
@@ -353,7 +359,7 @@ namespace WamisDataCollector.Services
 
         //    var response = await _apiClient.GetDataAsync<FlowMeasurementResponse>("wkw/wkw_flwsrrslst", parameters);
         //    if (response?.List != null) await _dataService.BulkUpsertFlowMeasurementAsync(response.List, stationCode);
-        //    await Task.Delay(250);
+        //    await Task.Delay(100);
         //}
     }
 }
