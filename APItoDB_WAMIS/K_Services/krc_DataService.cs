@@ -4,10 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Npgsql;
-using WamisWaterLevelDataApi.Models; // KRC Models
-using WamisWaterLevelDataApi.Services; // For KrcReservoirService if needed, or common utilities
+using KRC_Services.Models; // KRC Models
 
-namespace WamisWaterLevelDataApi.Services
+namespace KRC_Services.Services
 {
     public class KrcDataService
     {

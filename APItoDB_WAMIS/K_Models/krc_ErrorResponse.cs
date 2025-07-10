@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace WamisWaterLevelDataApi.Models
+namespace KRC_Services.Models
 {
     [XmlRoot("OpenAPI_ServiceResponse")]
     public class KrcOpenApiErrorResponse

@@ -1,7 +1,7 @@
 using System.Xml.Serialization;
 using System.Collections.Generic;
 
-namespace WamisWaterLevelDataApi.Models
+namespace KRC_Services.Models
 {
     [XmlRoot("response")]
     public class KrcReservoirLevelResponse

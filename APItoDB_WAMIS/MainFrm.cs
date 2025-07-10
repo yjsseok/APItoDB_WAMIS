@@ -5,9 +5,8 @@ using System.Windows.Forms;
 using WamisDataCollector.Services;
 using log4net;
 using System.Collections.Generic;
-using System.Linq; 
-using WamisWaterLevelDataApi.Models;
-
+using System.Linq;
+using KRC_Services.Services;
 
 namespace WamisDataCollector
 {
@@ -187,7 +186,7 @@ namespace WamisDataCollector
                 await RunTask(async () =>
                 {
                     Log("KRC 전체 저수지 코드 조회를 시작합니다...");
-                    var allCodes = new List<WamisWaterLevelDataApi.Models.KrcReservoirCodeItem>();
+                    var allCodes = new List<KRC_Services.Models.KrcReservoirCodeItem>();
                     int pageNo = 1;
                     int totalCount = 0;
                     const int numOfRows = 100; // API가 허용하는 최대치 또는 적절한 값으로 설정
@@ -316,7 +315,7 @@ namespace WamisDataCollector
         /// <param name="taskTitle">작업 제목 (로그용)</param>
         /// <param name="apiCallFunc">실제 API를 호출하는 함수 (facCode, dateS, dateE, county, numOfRows, pageNo, isTestMode 파라미터를 받고 Task<KrcReservoirLevelResponse> 반환)</param>
         private async Task CollectKrcLevelDataAsync(string taskTitle,
-            Func<string, string, string, string, int, int, bool, Task<WamisWaterLevelDataApi.Models.KrcReservoirLevelResponse>> apiCallFunc)
+            Func<string, string, string, string, int, int, bool, Task<KRC_Services.Models.KrcReservoirLevelResponse>> apiCallFunc)
         {
             var startDate = _dtpStartDate.Value;
             var endDate = _dtpEndDate.Value;

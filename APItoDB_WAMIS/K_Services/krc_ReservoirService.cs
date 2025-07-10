@@ -5,9 +5,9 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using WamisWaterLevelDataApi.Models; // Assuming Models namespace
+using KRC_Services.Models;
 
-namespace WamisWaterLevelDataApi.Services
+namespace KRC_Services.Services
 {
     public class KrcReservoirService
     {
@@ -51,8 +51,8 @@ namespace WamisWaterLevelDataApi.Services
                         var genericResponse = DeserializeXml<KrcReservoirCodeResponse>(xmlData); // Or any other type that has KrcHeader
                         if (genericResponse != null && genericResponse.Header != null)
                         {
-                             throw new HttpRequestException(
-                                $"API Provider Error: {genericResponse.Header.ReturnAuthMsg} (Code: {genericResponse.Header.ReturnReasonCode}). URL: {requestUrl}");
+                            throw new HttpRequestException(
+                               $"API Provider Error: {genericResponse.Header.ReturnAuthMsg} (Code: {genericResponse.Header.ReturnReasonCode}). URL: {requestUrl}");
                         }
                     }
                     // If neither deserialization works, throw a generic error with status code
@@ -92,13 +92,12 @@ namespace WamisWaterLevelDataApi.Services
         /// <returns>KrcReservoirCodeResponse 객체</returns>
         public async Task<KrcReservoirCodeResponse> GetReservoirCodesAsync(string facName = null, string county = null, int numOfRows = 10, int pageNo = 1)
         {
-            // serviceKey는 인코딩하지 않고 직접 붙임
             var queryList = new List<string>
-            {
-                $"serviceKey={_serviceKey}",
-                $"pageNo={pageNo}",
-                $"numOfRows={numOfRows}"
-            };
+        {
+            $"serviceKey={_serviceKey}",
+            $"pageNo={pageNo}",
+            $"numOfRows={numOfRows}"
+        };
 
             if (!string.IsNullOrWhiteSpace(facName))
                 queryList.Add("fac_name=" + Uri.EscapeDataString(facName));
@@ -112,13 +111,11 @@ namespace WamisWaterLevelDataApi.Services
             Console.WriteLine($"Request URL (Reservoir Codes): {requestUrl}");
 
             // 실제 API 호출 및 역직렬화는 아래처럼 구현
-            // return await CallApiAsync<KrcReservoirCodeResponse>(ReservoirCodeBaseUrl, queryParams);
+             return await CallApiAsync<KrcReservoirCodeResponse>(ReservoirCodeBaseUrl, queryParams);
 
-            return await Task.FromResult(new KrcReservoirCodeResponse()); // Placeholder
+           // return await Task.FromResult(new KrcReservoirCodeResponse()); // Placeholder
         }
 
-
-        // --- 저수지 수위 조회 (reservoirlevel) ---
 
         /// <summary>
         /// 지정된 저수지 코드와 기간으로 수위 정보를 조회합니다. (초기 데이터 구축용)
@@ -137,23 +134,22 @@ namespace WamisWaterLevelDataApi.Services
         {
             if (string.IsNullOrWhiteSpace(facCode) && string.IsNullOrWhiteSpace(county))
             {
-                 throw new ArgumentException("저수지 코드(facCode) 또는 저수지 위치(county) 중 하나는 반드시 입력해야 합니다.");
+                throw new ArgumentException("저수지 코드(facCode) 또는 저수지 위치(county) 중 하나는 반드시 입력해야 합니다.");
             }
             if (isTestMode)
             {
-                // 테스트 모드일 경우 목업 데이터 반환 또는 특정 로직 수행
                 Console.WriteLine("[TEST MODE] GetReservoirLevelsForInitialSetupAsync called.");
-                return new KrcReservoirLevelResponse { Body = new KrcReservoirLevelBody { Items = new List<KrcReservoirLevelItem>() }};
+                return new KrcReservoirLevelResponse { Body = new KrcReservoirLevelBody { Items = new List<KrcReservoirLevelItem>() } };
             }
 
             var queryParams = new Dictionary<string, string>
-            {
-                { "serviceKey", _serviceKey },
-                { "date_s", dateS },
-                { "date_e", dateE },
-                { "numOfRows", numOfRows.ToString() },
-                { "pageNo", pageNo.ToString() }
-            };
+        {
+            { "serviceKey", _serviceKey },
+            { "date_s", dateS },
+            { "date_e", dateE },
+            { "numOfRows", numOfRows.ToString() },
+            { "pageNo", pageNo.ToString() }
+        };
 
             if (!string.IsNullOrWhiteSpace(facCode))
             {
@@ -161,7 +157,7 @@ namespace WamisWaterLevelDataApi.Services
             }
             if (!string.IsNullOrWhiteSpace(county))
             {
-                 queryParams.Add("county", county);
+                queryParams.Add("county", county);
             }
 
             var requestUrl = ReservoirLevelBaseUrl + "?" + await new FormUrlEncodedContent(queryParams).ReadAsStringAsync();
@@ -219,7 +215,7 @@ namespace WamisWaterLevelDataApi.Services
                 Console.WriteLine($"Data for facCode {facCode} is already up to date (Last saved: {lastSavedDate}). No new data to fetch.");
                 return new KrcReservoirLevelResponse
                 {
-                    Header = new KrcHeader { ReturnReasonCode = "00", ReturnAuthMsg = "NO_DATA_TO_UPDATE (ALREADY_CURRENT)"},
+                    Header = new KrcHeader { ReturnReasonCode = "00", ReturnAuthMsg = "NO_DATA_TO_UPDATE (ALREADY_CURRENT)" },
                     Body = new KrcReservoirLevelBody { Items = new List<KrcReservoirLevelItem>(), TotalCount = 0 }
                 };
             }
