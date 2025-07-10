@@ -6,8 +6,6 @@ using WamisDataCollector.Services;
 using log4net;
 using System.Collections.Generic;
 using System.Linq; // Add this for LINQ extension methods like .Any()
-using WamisWaterLevelDataApi.Services;
-using WamisWaterLevelDataApi.Models; // KRC Models
 
 namespace WamisDataCollector
 {
@@ -234,10 +232,11 @@ namespace WamisDataCollector
                 await RunTask(async () =>
                 {
                     Log("KRC 저수지 수위 일별 최신화를 시작합니다...");
-                    var krcStations = await _wamisDataService.GetAllStationsAsync("KRC_RESERVOIR");
+                    // KRC 저수지 코드 목록을 krc_reservoircode 테이블에서 가져오도록 수정
+                    var krcStations = await _wamisDataService.GetKrcReservoirStationInfosAsync();
                     if (krcStations == null || !krcStations.Any())
                     {
-                        Log("DB에 KRC 저수지 정보가 없습니다. 먼저 'KRC 전체 코드 조회/저장'을 실행하세요.");
+                        Log("DB에 KRC 저수지 코드 정보가 없습니다. 먼저 'KRC 전체 코드 조회/저장'을 실행하세요.");
                         return;
                     }
 
@@ -250,7 +249,8 @@ namespace WamisDataCollector
 
                         try
                         {
-                            DateTime? lastDate = await _wamisDataService.GetLastKrcReservoirDailyDateAsync(station.StationCode);
+                            // 마지막 날짜 조회 메소드명 변경 반영
+                            DateTime? lastDate = await _wamisDataService.GetLastKrcLevelDailyDateAsync(station.StationCode);
                             string startDateForApi;
                             if (lastDate.HasValue)
                             {
@@ -327,10 +327,11 @@ namespace WamisDataCollector
                 await RunTask(async () =>
                 {
                     Log($"{taskTitle}을(를) 시작합니다...");
-                    var krcStations = await _wamisDataService.GetAllStationsAsync("KRC_RESERVOIR");
+                    // KRC 저수지 코드 목록을 krc_reservoircode 테이블에서 가져오도록 수정
+                    var krcStations = await _wamisDataService.GetKrcReservoirStationInfosAsync();
                     if (krcStations == null || !krcStations.Any())
                     {
-                        Log("DB에 KRC 저수지 정보가 없습니다. 먼저 'KRC 전체 코드 조회/저장'을 실행하세요.");
+                        Log("DB에 KRC 저수지 코드 정보가 없습니다. 먼저 'KRC 전체 코드 조회/저장'을 실행하세요.");
                         return;
                     }
 
