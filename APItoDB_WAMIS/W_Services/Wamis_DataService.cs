@@ -37,6 +37,16 @@ namespace WamisDataCollector.Services
                 // 수위
                 await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS wl_hourly (station_code TEXT NOT NULL, obs_time TIMESTAMP NOT NULL, water_level REAL, PRIMARY KEY (station_code, obs_time));", conn).ExecuteNonQueryAsync();
                 await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS wl_daily (station_code TEXT NOT NULL, obs_date DATE NOT NULL, water_level REAL, PRIMARY KEY (station_code, obs_date));", conn).ExecuteNonQueryAsync();
+
+                // KRC 저수지 수위/저수율 (일별 데이터만 존재)
+                await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS krc_reservoir_daily (
+                    station_code TEXT NOT NULL,
+                    obs_date DATE NOT NULL,
+                    water_level REAL,
+                    rate REAL,
+                    PRIMARY KEY (station_code, obs_date)
+                );", conn).ExecuteNonQueryAsync();
+
                 // 기상
                 await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS weather_hourly (
                     station_code TEXT NOT NULL, obs_time TIMESTAMP NOT NULL, ta REAL, hm REAL, td REAL, ps REAL, ws REAL, wd TEXT, sihr1 REAL, catot REAL, sdtot REAL, sshr1 REAL, PRIMARY KEY (station_code, obs_time) );", conn).ExecuteNonQueryAsync();
@@ -687,6 +697,10 @@ namespace WamisDataCollector.Services
         public async Task<DateTime?> GetLastMonthlyRainfallDateAsync(string stationCode) => await GetLastDateAsync("rf_monthly", "obs_month", "station_code", stationCode);
         public async Task<DateTime?> GetLastWaterLevelHourlyDateAsync(string stationCode) => await GetLastDateAsync("wl_hourly", "obs_time", "station_code", stationCode);
         public async Task<DateTime?> GetLastDailyWaterLevelDateAsync(string stationCode) => await GetLastDateAsync("wl_daily", "obs_date", "station_code", stationCode);
+
+        // KRC 저수지 데이터용 마지막 날짜 조회
+        public async Task<DateTime?> GetLastKrcReservoirDailyDateAsync(string stationCode) => await GetLastDateAsync("krc_reservoir_daily", "obs_date", "station_code", stationCode);
+
         public async Task<DateTime?> GetLastWeatherHourlyDateAsync(string stationCode) => await GetLastDateAsync("weather_hourly", "obs_time", "station_code", stationCode);
         public async Task<DateTime?> GetLastWeatherDailyDateAsync(string stationCode) => await GetLastDateAsync("weather_daily", "obs_date", "station_code", stationCode);
         public async Task<DateTime?> GetLastFlowMeasurementDateAsync(string stationCode) => await GetLastDateAsync("flow_measurements", "obs_date", "station_code", stationCode);
