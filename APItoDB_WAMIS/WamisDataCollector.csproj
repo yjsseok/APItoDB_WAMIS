@@ -127,6 +127,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="api_guide\krc_api_guide_errorcodes.md" />
+    <None Include="api_guide\krc_api_guide_reservoircode.md" />
+    <None Include="api_guide\krc_api_guide_reservoirlevel.md" />
     <None Include="project_md\1.prd.md" />
     <None Include="project_md\2.design.md" />
     <None Include="project_md\3.development.md" />
@@ -134,28 +137,28 @@
     <None Include="project_md\5.manual.md" />
     <None Include="project_md\6.process.md" />
     <None Include="project_md\7.reference.md" />
-    <None Include="W_md\wamis_api_guide.md" />
-    <None Include="W_md\wamis_api_guide_flw_w14.md" />
-    <None Include="W_md\wamis_api_guide_flw_w15.md" />
-    <None Include="W_md\wamis_api_guide_mn_w34.md" />
-    <None Include="W_md\wamis_api_guide_mn_w35.md" />
-    <None Include="W_md\wamis_api_guide_mn_w36.md" />
-    <None Include="W_md\wamis_api_guide_mn_w37.md" />
-    <None Include="W_md\wamis_api_guide_rf_w1.md" />
-    <None Include="W_md\wamis_api_guide_rf_w2.md" />
-    <None Include="W_md\wamis_api_guide_rf_w3.md" />
-    <None Include="W_md\wamis_api_guide_rf_w4.md" />
-    <None Include="W_md\wamis_api_guide_rf_w5.md" />
-    <None Include="W_md\wamis_api_guide_we_w10.md" />
-    <None Include="W_md\wamis_api_guide_we_w11.md" />
-    <None Include="W_md\wamis_api_guide_we_w12.md" />
-    <None Include="W_md\wamis_api_guide_we_w13.md" />
-    <None Include="W_md\wamis_api_guide_wkw_w16.md" />
-    <None Include="W_md\wamis_api_guide_wkw_w17.md" />
-    <None Include="W_md\wamis_api_guide_wl_w6.md" />
-    <None Include="W_md\wamis_api_guide_wl_w7.md" />
-    <None Include="W_md\wamis_api_guide_wl_w8.md" />
-    <None Include="W_md\wamis_api_guide_wl_w9.md" />
+    <None Include="api_guide\wamis_api_guide.md" />
+    <None Include="api_guide\wamis_api_guide_flw_w14.md" />
+    <None Include="api_guide\wamis_api_guide_flw_w15.md" />
+    <None Include="api_guide\wamis_api_guide_mn_w34.md" />
+    <None Include="api_guide\wamis_api_guide_mn_w35.md" />
+    <None Include="api_guide\wamis_api_guide_mn_w36.md" />
+    <None Include="api_guide\wamis_api_guide_mn_w37.md" />
+    <None Include="api_guide\wamis_api_guide_rf_w1.md" />
+    <None Include="api_guide\wamis_api_guide_rf_w2.md" />
+    <None Include="api_guide\wamis_api_guide_rf_w3.md" />
+    <None Include="api_guide\wamis_api_guide_rf_w4.md" />
+    <None Include="api_guide\wamis_api_guide_rf_w5.md" />
+    <None Include="api_guide\wamis_api_guide_we_w10.md" />
+    <None Include="api_guide\wamis_api_guide_we_w11.md" />
+    <None Include="api_guide\wamis_api_guide_we_w12.md" />
+    <None Include="api_guide\wamis_api_guide_we_w13.md" />
+    <None Include="api_guide\wamis_api_guide_wkw_w16.md" />
+    <None Include="api_guide\wamis_api_guide_wkw_w17.md" />
+    <None Include="api_guide\wamis_api_guide_wl_w6.md" />
+    <None Include="api_guide\wamis_api_guide_wl_w7.md" />
+    <None Include="api_guide\wamis_api_guide_wl_w8.md" />
+    <None Include="api_guide\wamis_api_guide_wl_w9.md" />
     <None Include="config\packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
