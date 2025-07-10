@@ -127,6 +127,13 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="project_md\1.prd.md" />
+    <None Include="project_md\2.design.md" />
+    <None Include="project_md\3.development.md" />
+    <None Include="project_md\4.testplan.md" />
+    <None Include="project_md\5.manual.md" />
+    <None Include="project_md\6.process.md" />
+    <None Include="project_md\7.reference.md" />
     <None Include="W_md\wamis_api_guide.md" />
     <None Include="W_md\wamis_api_guide_flw_w14.md" />
     <None Include="W_md\wamis_api_guide_flw_w15.md" />

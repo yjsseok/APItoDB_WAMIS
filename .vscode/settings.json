@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET WinForms 실행",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "E:/Coding/APItoDB_WAMIS/APItoDB_WAMIS/bin/Debug/net48/WamisDataCollector.exe",
+            "cwd": "E:/Coding/APItoDB_WAMIS/APItoDB_WAMIS/bin/Debug/net48",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}
