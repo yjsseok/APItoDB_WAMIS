@@ -28,10 +28,10 @@
             this.lblEndDate = new System.Windows.Forms.Label();
             this._chkTestMode = new System.Windows.Forms.CheckBox();
             this.groupBoxKRC = new System.Windows.Forms.GroupBox();
-            this._btnKrcFetchAllCodes = new System.Windows.Forms.Button();
-            this._btnKrcInitialLoad = new System.Windows.Forms.Button();
-            this._btnKrcDailyUpdate = new System.Windows.Forms.Button();
             this._btnKrcBackfill = new System.Windows.Forms.Button();
+            this._btnKrcDailyUpdate = new System.Windows.Forms.Button();
+            this._btnKrcInitialLoad = new System.Windows.Forms.Button();
+            this._btnKrcFetchAllCodes = new System.Windows.Forms.Button();
             this.groupBoxWamis = new System.Windows.Forms.GroupBox();
             this.groupBoxKRC.SuspendLayout();
             this.groupBoxWamis.SuspendLayout();
@@ -100,14 +100,14 @@
             this._txtLogs.Name = "_txtLogs";
             this._txtLogs.ReadOnly = true;
             this._txtLogs.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._txtLogs.Size = new System.Drawing.Size(868, 476);
+            this._txtLogs.Size = new System.Drawing.Size(868, 623);
             this._txtLogs.TabIndex = 5;
             // 
             // _progressBar
             // 
             this._progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this._progressBar.Location = new System.Drawing.Point(14, 650);
+            this._progressBar.Location = new System.Drawing.Point(14, 797);
             this._progressBar.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this._progressBar.MarqueeAnimationSpeed = 0;
             this._progressBar.Name = "_progressBar";
@@ -144,7 +144,7 @@
             this._chkTestMode.UseVisualStyleBackColor = true;
             // 
             // groupBoxKRC
-            //
+            // 
             this.groupBoxKRC.Controls.Add(this._btnKrcBackfill);
             this.groupBoxKRC.Controls.Add(this._btnKrcDailyUpdate);
             this.groupBoxKRC.Controls.Add(this._btnKrcInitialLoad);
@@ -155,39 +155,9 @@
             this.groupBoxKRC.TabIndex = 11;
             this.groupBoxKRC.TabStop = false;
             this.groupBoxKRC.Text = "KRC 농업용 저수지";
-            //
-            // _btnKrcFetchAllCodes
-            //
-            this._btnKrcFetchAllCodes.Location = new System.Drawing.Point(10, 20);
-            this._btnKrcFetchAllCodes.Name = "_btnKrcFetchAllCodes";
-            this._btnKrcFetchAllCodes.Size = new System.Drawing.Size(140, 28);
-            this._btnKrcFetchAllCodes.TabIndex = 0;
-            this._btnKrcFetchAllCodes.Text = "전체 코드 조회/저장";
-            this._btnKrcFetchAllCodes.UseVisualStyleBackColor = true;
-            this._btnKrcFetchAllCodes.Click += new System.EventHandler(this.BtnKrcFetchAllCodes_Click);
-            //
-            // _btnKrcInitialLoad
-            //
-            this._btnKrcInitialLoad.Location = new System.Drawing.Point(156, 20);
-            this._btnKrcInitialLoad.Name = "_btnKrcInitialLoad";
-            this._btnKrcInitialLoad.Size = new System.Drawing.Size(140, 28);
-            this._btnKrcInitialLoad.TabIndex = 1;
-            this._btnKrcInitialLoad.Text = "초기 수위 로드";
-            this._btnKrcInitialLoad.UseVisualStyleBackColor = true;
-            this._btnKrcInitialLoad.Click += new System.EventHandler(this.BtnKrcInitialLoad_Click);
-            //
-            // _btnKrcDailyUpdate
-            //
-            this._btnKrcDailyUpdate.Location = new System.Drawing.Point(302, 20);
-            this._btnKrcDailyUpdate.Name = "_btnKrcDailyUpdate";
-            this._btnKrcDailyUpdate.Size = new System.Drawing.Size(140, 28);
-            this._btnKrcDailyUpdate.TabIndex = 2;
-            this._btnKrcDailyUpdate.Text = "수위 일별 최신화";
-            this._btnKrcDailyUpdate.UseVisualStyleBackColor = true;
-            this._btnKrcDailyUpdate.Click += new System.EventHandler(this.BtnKrcDailyUpdate_Click);
-            //
+            // 
             // _btnKrcBackfill
-            //
+            // 
             this._btnKrcBackfill.Location = new System.Drawing.Point(448, 20);
             this._btnKrcBackfill.Name = "_btnKrcBackfill";
             this._btnKrcBackfill.Size = new System.Drawing.Size(140, 28);
@@ -195,9 +165,39 @@
             this._btnKrcBackfill.Text = "수위 누락 보충";
             this._btnKrcBackfill.UseVisualStyleBackColor = true;
             this._btnKrcBackfill.Click += new System.EventHandler(this.BtnKrcBackfill_Click);
-            //
+            // 
+            // _btnKrcDailyUpdate
+            // 
+            this._btnKrcDailyUpdate.Location = new System.Drawing.Point(302, 20);
+            this._btnKrcDailyUpdate.Name = "_btnKrcDailyUpdate";
+            this._btnKrcDailyUpdate.Size = new System.Drawing.Size(140, 28);
+            this._btnKrcDailyUpdate.TabIndex = 2;
+            this._btnKrcDailyUpdate.Text = "수위 일별 최신화";
+            this._btnKrcDailyUpdate.UseVisualStyleBackColor = true;
+            this._btnKrcDailyUpdate.Click += new System.EventHandler(this.BtnKrcDailyUpdate_Click);
+            // 
+            // _btnKrcInitialLoad
+            // 
+            this._btnKrcInitialLoad.Location = new System.Drawing.Point(156, 20);
+            this._btnKrcInitialLoad.Name = "_btnKrcInitialLoad";
+            this._btnKrcInitialLoad.Size = new System.Drawing.Size(140, 28);
+            this._btnKrcInitialLoad.TabIndex = 1;
+            this._btnKrcInitialLoad.Text = "초기 수위 로드";
+            this._btnKrcInitialLoad.UseVisualStyleBackColor = true;
+            this._btnKrcInitialLoad.Click += new System.EventHandler(this.BtnKrcInitialLoad_Click);
+            // 
+            // _btnKrcFetchAllCodes
+            // 
+            this._btnKrcFetchAllCodes.Location = new System.Drawing.Point(10, 20);
+            this._btnKrcFetchAllCodes.Name = "_btnKrcFetchAllCodes";
+            this._btnKrcFetchAllCodes.Size = new System.Drawing.Size(140, 28);
+            this._btnKrcFetchAllCodes.TabIndex = 0;
+            this._btnKrcFetchAllCodes.Text = "전체 코드 조회/저장";
+            this._btnKrcFetchAllCodes.UseVisualStyleBackColor = true;
+            this._btnKrcFetchAllCodes.Click += new System.EventHandler(this.BtnKrcFetchAllCodes_Click);
+            // 
             // groupBoxWamis
-            //
+            // 
             this.groupBoxWamis.Controls.Add(this._btnInitialLoad);
             this.groupBoxWamis.Controls.Add(this._btnDailyUpdate);
             this.groupBoxWamis.Controls.Add(this._btnBackfill);
@@ -207,12 +207,12 @@
             this.groupBoxWamis.TabIndex = 12;
             this.groupBoxWamis.TabStop = false;
             this.groupBoxWamis.Text = "WAMIS 수자원";
-            //
+            // 
             // MainFrm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(896, 701);
+            this.ClientSize = new System.Drawing.Size(896, 848);
             this.Controls.Add(this.groupBoxWamis);
             this.Controls.Add(this.groupBoxKRC);
             this.Controls.Add(this._chkTestMode);
