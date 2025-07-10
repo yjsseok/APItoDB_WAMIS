@@ -24,18 +24,49 @@ namespace KRC_Services.Services
 
         private async Task<T> CallApiAsync<T>(string baseUrl, Dictionary<string, string> queryParams) where T : class
         {
-            var requestUrl = baseUrl + "?" + await new FormUrlEncodedContent(queryParams).ReadAsStringAsync();
-            Console.WriteLine($"Requesting KRC API: {requestUrl}"); // Logging the request URL
+            // county, fac_name, fac_code 모두 없으면 county= " " 추가
+            if (!queryParams.ContainsKey("county") &&
+                !queryParams.ContainsKey("fac_name") &&
+                !queryParams.ContainsKey("fac_code"))
+            {
+                queryParams.Add("county", " ");
+            }
+
+            var paramList = new List<string>();
+            foreach (var kv in queryParams)
+            {
+                if (kv.Key == "serviceKey")
+                {
+                    paramList.Add($"{kv.Key}={kv.Value}");
+                }
+                else if (kv.Key == "county" && kv.Value == " ")
+                {
+                    // county= " " (공백)일 때는 인코딩하지 않음
+                    paramList.Add($"{kv.Key}= ");
+                }
+                else
+                {
+                    paramList.Add($"{kv.Key}={Uri.EscapeDataString(kv.Value ?? "")}");
+                }
+            }
+            var requestUrl = baseUrl + "?" + string.Join("&", paramList);
+
+            Console.WriteLine($"Requesting KRC API: {requestUrl}");
 
             try
             {
                 HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
 
-                string xmlData = await response.Content.ReadAsStringAsync();
+                // 강제로 UTF-8로 읽기
+                string xmlData;
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true))
+                {
+                    xmlData = await reader.ReadToEndAsync();
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Try to deserialize as KrcOpenApiErrorResponse first
                     try
                     {
                         KrcOpenApiErrorResponse errorResponse = DeserializeXml<KrcOpenApiErrorResponse>(xmlData);
@@ -45,18 +76,16 @@ namespace KRC_Services.Services
                                 $"API Error: {errorResponse.CmmMsgHeader.ErrMsg} (Code: {errorResponse.CmmMsgHeader.ReturnReasonCode}, AuthMsg: {errorResponse.CmmMsgHeader.ReturnAuthMsg}). URL: {requestUrl}");
                         }
                     }
-                    catch (InvalidOperationException) // Not an OpenAPIErrorResponse, try KrcHeader style
+                    catch (InvalidOperationException)
                     {
-                        // Try to deserialize as a generic response to get KrcHeader for provider errors
-                        var genericResponse = DeserializeXml<KrcReservoirCodeResponse>(xmlData); // Or any other type that has KrcHeader
+                        var genericResponse = DeserializeXml<KrcReservoirCodeResponse>(xmlData);
                         if (genericResponse != null && genericResponse.Header != null)
                         {
                             throw new HttpRequestException(
                                $"API Provider Error: {genericResponse.Header.ReturnAuthMsg} (Code: {genericResponse.Header.ReturnReasonCode}). URL: {requestUrl}");
                         }
                     }
-                    // If neither deserialization works, throw a generic error with status code
-                    response.EnsureSuccessStatusCode(); // This will throw if not success and not handled above
+                    response.EnsureSuccessStatusCode();
                 }
 
                 return DeserializeXml<T>(xmlData);
@@ -64,12 +93,11 @@ namespace KRC_Services.Services
             catch (HttpRequestException ex)
             {
                 Console.WriteLine($"HTTP Request Exception: {ex.Message} for URL: {requestUrl}");
-                throw; // Re-throw to be handled by the caller
+                throw;
             }
-            catch (InvalidOperationException ex) // Catches XML deserialization errors
+            catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"XML Deserialization Exception: {ex.Message} for URL: {requestUrl}");
-                // Consider logging the raw XML (xmlData) here for debugging if it's not too large
                 throw new InvalidOperationException($"Failed to deserialize XML response from KRC API. URL: {requestUrl}. Error: {ex.Message}", ex);
             }
             catch (Exception ex)
