@@ -94,15 +94,13 @@
             this._txtLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this._txtLogs.Location = new System.Drawing.Point(14, 182);
+            this._txtLogs.Location = new System.Drawing.Point(14, 160);
             this._txtLogs.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this._txtLogs.Multiline = true;
             this._txtLogs.Name = "_txtLogs";
             this._txtLogs.ReadOnly = true;
             this._txtLogs.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-
-
-            this._txtLogs.Size = new System.Drawing.Size(868, 601);
+            this._txtLogs.Size = new System.Drawing.Size(868, 476);
             this._txtLogs.TabIndex = 5;
             // 
             // _progressBar
@@ -151,22 +149,20 @@
             this.groupBoxKRC.Controls.Add(this._btnKrcDailyUpdate);
             this.groupBoxKRC.Controls.Add(this._btnKrcInitialLoad);
             this.groupBoxKRC.Controls.Add(this._btnKrcFetchAllCodes);
-            this.groupBoxKRC.Location = new System.Drawing.Point(14, 115);
+            this.groupBoxKRC.Location = new System.Drawing.Point(14, 100);
             this.groupBoxKRC.Name = "groupBoxKRC";
-            this.groupBoxKRC.Size = new System.Drawing.Size(868, 60);
+            this.groupBoxKRC.Size = new System.Drawing.Size(868, 53);
             this.groupBoxKRC.TabIndex = 11;
             this.groupBoxKRC.TabStop = false;
             this.groupBoxKRC.Text = "KRC 농업용 저수지";
-
-
-
+            //
             // _btnKrcFetchAllCodes
             //
             this._btnKrcFetchAllCodes.Location = new System.Drawing.Point(10, 20);
             this._btnKrcFetchAllCodes.Name = "_btnKrcFetchAllCodes";
-            this._btnKrcFetchAllCodes.Size = new System.Drawing.Size(140, 34);
+            this._btnKrcFetchAllCodes.Size = new System.Drawing.Size(140, 28);
             this._btnKrcFetchAllCodes.TabIndex = 0;
-            this._btnKrcFetchAllCodes.Text = "코드 조회/저장";
+            this._btnKrcFetchAllCodes.Text = "전체 코드 조회/저장";
             this._btnKrcFetchAllCodes.UseVisualStyleBackColor = true;
             this._btnKrcFetchAllCodes.Click += new System.EventHandler(this.BtnKrcFetchAllCodes_Click);
             //
@@ -207,7 +203,7 @@
             this.groupBoxWamis.Controls.Add(this._btnBackfill);
             this.groupBoxWamis.Location = new System.Drawing.Point(14, 45);
             this.groupBoxWamis.Name = "groupBoxWamis";
-            this.groupBoxWamis.Size = new System.Drawing.Size(868, 64);
+            this.groupBoxWamis.Size = new System.Drawing.Size(868, 52);
             this.groupBoxWamis.TabIndex = 12;
             this.groupBoxWamis.TabStop = false;
             this.groupBoxWamis.Text = "WAMIS 수자원";
