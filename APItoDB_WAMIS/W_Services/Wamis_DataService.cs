@@ -38,13 +38,22 @@ namespace WamisDataCollector.Services
                 await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS wl_hourly (station_code TEXT NOT NULL, obs_time TIMESTAMP NOT NULL, water_level REAL, PRIMARY KEY (station_code, obs_time));", conn).ExecuteNonQueryAsync();
                 await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS wl_daily (station_code TEXT NOT NULL, obs_date DATE NOT NULL, water_level REAL, PRIMARY KEY (station_code, obs_date));", conn).ExecuteNonQueryAsync();
 
-                // KRC 저수지 수위/저수율 (일별 데이터만 존재)
-                await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS krc_reservoir_daily (
-                    station_code TEXT NOT NULL,
-                    obs_date DATE NOT NULL,
+                // KRC 저수지 코드 정보 테이블
+                await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS krc_reservoircode (
+                    fac_code TEXT PRIMARY KEY,
+                    fac_name TEXT,
+                    county TEXT
+                );", conn).ExecuteNonQueryAsync();
+
+                // KRC 저수지 수위/저수율 정보 테이블
+                await new NpgsqlCommand(@"CREATE TABLE IF NOT EXISTS reservoirlevel (
+                    fac_code TEXT NOT NULL,
+                    check_date DATE NOT NULL,
+                    fac_name TEXT,
+                    county TEXT,
                     water_level REAL,
                     rate REAL,
-                    PRIMARY KEY (station_code, obs_date)
+                    PRIMARY KEY (fac_code, check_date)
                 );", conn).ExecuteNonQueryAsync();
 
                 // 기상
@@ -699,7 +708,9 @@ namespace WamisDataCollector.Services
         public async Task<DateTime?> GetLastDailyWaterLevelDateAsync(string stationCode) => await GetLastDateAsync("wl_daily", "obs_date", "station_code", stationCode);
 
         // KRC 저수지 데이터용 마지막 날짜 조회
-        public async Task<DateTime?> GetLastKrcReservoirDailyDateAsync(string stationCode) => await GetLastDateAsync("krc_reservoir_daily", "obs_date", "station_code", stationCode);
+
+        public async Task<DateTime?> GetLastKrcLevelDailyDateAsync(string facCode) => await GetLastDateAsync("reservoirlevel", "check_date", "fac_code", facCode);
+
         public async Task<DateTime?> GetLastWeatherHourlyDateAsync(string stationCode) => await GetLastDateAsync("weather_hourly", "obs_time", "station_code", stationCode);
         public async Task<DateTime?> GetLastWeatherDailyDateAsync(string stationCode) => await GetLastDateAsync("weather_daily", "obs_date", "station_code", stationCode);
         public async Task<DateTime?> GetLastFlowMeasurementDateAsync(string stationCode) => await GetLastDateAsync("flow_measurements", "obs_date", "station_code", stationCode);
@@ -707,6 +718,36 @@ namespace WamisDataCollector.Services
         public async Task<DateTime?> GetLastDamHourlyDateAsync(string damCode) => await GetLastDateAsync("dam_hourly", "obs_time", "dam_code", damCode);
         public async Task<DateTime?> GetLastDamDailyDateAsync(string damCode) => await GetLastDateAsync("dam_daily", "obs_date", "dam_code", damCode);
         public async Task<DateTime?> GetLastDamMonthlyDateAsync(string damCode) => await GetLastDateAsync("dam_monthly", "obs_month", "dam_code", damCode);
+
+        /// <summary>
+        /// KRC 저수지 코드 및 이름 정보를 krc_reservoircode 테이블에서 조회합니다.
+        /// </summary>
+        /// <returns>StationInfo 리스트 (StationCode에 fac_code, Name에 fac_name 매핑)</returns>
+        public async Task<List<StationInfo>> GetKrcReservoirStationInfosAsync()
+        {
+            var stations = new List<StationInfo>();
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                await conn.OpenAsync();
+                var sql = "SELECT fac_code, fac_name FROM krc_reservoircode;";
+
+                using (var cmd = new NpgsqlCommand(sql, conn))
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        stations.Add(new StationInfo
+                        {
+                            StationCode = reader.GetString(0), // fac_code
+                            Name = reader.IsDBNull(1) ? null : reader.GetString(1) // fac_name
+                            // StationType은 이 메소드에서 설정하지 않음. 필요시 호출부에서 설정.
+                        });
+                    }
+                }
+            }
+            _logAction($"{stations.Count}개의 KRC 저수지 코드 정보를 DB에서 조회했습니다.");
+            return stations;
+        }
     }
 }
         //유사량 미사용
