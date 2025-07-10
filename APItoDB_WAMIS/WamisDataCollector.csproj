@@ -103,6 +103,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="krc_Models\krc_ErrorResponse.cs" />
+    <Compile Include="krc_Models\krc_ReservoirCode.cs" />
+    <Compile Include="krc_Models\krc_ReservoirLevel.cs" />
+    <Compile Include="krc_Services\krc_DataService.cs" />
+    <Compile Include="krc_Services\krc_ReservoirService.cs" />
     <Compile Include="MainFrm.cs">
       <SubType>Form</SubType>
     </Compile>

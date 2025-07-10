@@ -5,6 +5,8 @@ using System.Windows.Forms;
 using WamisDataCollector.Services;
 using log4net;
 using System.Collections.Generic;
+using WamisWaterLevelDataApi.Services;
+using WamisWaterLevelDataApi.Models; // KRC Models
 
 namespace WamisDataCollector
 {
