@@ -700,7 +700,6 @@ namespace WamisDataCollector.Services
 
         // KRC 저수지 데이터용 마지막 날짜 조회
         public async Task<DateTime?> GetLastKrcReservoirDailyDateAsync(string stationCode) => await GetLastDateAsync("krc_reservoir_daily", "obs_date", "station_code", stationCode);
-
         public async Task<DateTime?> GetLastWeatherHourlyDateAsync(string stationCode) => await GetLastDateAsync("weather_hourly", "obs_time", "station_code", stationCode);
         public async Task<DateTime?> GetLastWeatherDailyDateAsync(string stationCode) => await GetLastDateAsync("weather_daily", "obs_date", "station_code", stationCode);
         public async Task<DateTime?> GetLastFlowMeasurementDateAsync(string stationCode) => await GetLastDateAsync("flow_measurements", "obs_date", "station_code", stationCode);
