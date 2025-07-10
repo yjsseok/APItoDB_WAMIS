@@ -60,7 +60,7 @@ namespace WamisDataCollector
                 _krcDataService = new KrcDataService(connectionString, this.Log);
 
                 // Ensure KRC tables exist
-                Task.Run(async () => await _wamisDataService.EnsureTablesExistAsync()).Wait(); // Ensure krc_reservoir_daily is created
+             //   Task.Run(async () => await _wamisDataService.EnsureTablesExistAsync()).Wait(); // Ensure krc_reservoir_daily is created
             }
             catch (Exception ex)
             {

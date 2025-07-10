@@ -20,14 +20,6 @@ namespace WamisWaterLevelDataApi.Services
         {
             _httpClient = httpClient;
             _serviceKey = ConfigurationManager.AppSettings["KrcApiKey"];
-            if (string.IsNullOrEmpty(_serviceKey))
-            {
-                // Fallback for environments where App.config might not be easily available (e.g., testing without full config setup)
-                // Or throw an exception if the key is absolutely mandatory.
-                Console.WriteLine("Warning: KrcApiKey not found in App.config. Using placeholder. This should be configured for actual use.");
-                // In a real application, throw new ConfigurationErrorsException("KrcApiKey is not configured in App.config");
-                _serviceKey = "YOUR_KRC_API_KEY_FALLBACK"; // Ensure this key is valid or handle appropriately
-            }
         }
 
         private async Task<T> CallApiAsync<T>(string baseUrl, Dictionary<string, string> queryParams) where T : class
@@ -100,35 +92,28 @@ namespace WamisWaterLevelDataApi.Services
         /// <returns>KrcReservoirCodeResponse 객체</returns>
         public async Task<KrcReservoirCodeResponse> GetReservoirCodesAsync(string facName = null, string county = null, int numOfRows = 10, int pageNo = 1)
         {
-            if (string.IsNullOrWhiteSpace(facName) && string.IsNullOrWhiteSpace(county))
+            // serviceKey는 인코딩하지 않고 직접 붙임
+            var queryList = new List<string>
             {
-                throw new ArgumentException("저수지 이름(facName) 또는 저수지 위치(county) 중 하나는 반드시 입력해야 합니다.");
-            }
-
-            var queryParams = new Dictionary<string, string>
-            {
-                { "serviceKey", _serviceKey },
-                { "numOfRows", numOfRows.ToString() },
-                { "pageNo", pageNo.ToString() }
+                $"serviceKey={_serviceKey}",
+                $"pageNo={pageNo}",
+                $"numOfRows={numOfRows}"
             };
 
             if (!string.IsNullOrWhiteSpace(facName))
-            {
-                queryParams.Add("fac_name", facName);
-            }
-            if (!string.IsNullOrWhiteSpace(county))
-            {
-                queryParams.Add("county", county);
-            }
+                queryList.Add("fac_name=" + Uri.EscapeDataString(facName));
+            if (county != null)
+                queryList.Add("county=" + Uri.EscapeDataString(county));
+            else if (string.IsNullOrWhiteSpace(facName))
+                queryList.Add("county= ");
 
-            var requestUrl = ReservoirCodeBaseUrl + "?" + await new FormUrlEncodedContent(queryParams).ReadAsStringAsync();
+            var requestUrl = ReservoirCodeBaseUrl + "?" + string.Join("&", queryList);
 
-            // 실제 API 호출 및 XML 역직렬화 로직 (다음 단계에서 구체화)
-            // HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
-            // response.EnsureSuccessStatusCode();
-            // string xmlData = await response.Content.ReadAsStringAsync();
-            // return DeserializeXml<KrcReservoirCodeResponse>(xmlData);
             Console.WriteLine($"Request URL (Reservoir Codes): {requestUrl}");
+
+            // 실제 API 호출 및 역직렬화는 아래처럼 구현
+            // return await CallApiAsync<KrcReservoirCodeResponse>(ReservoirCodeBaseUrl, queryParams);
+
             return await Task.FromResult(new KrcReservoirCodeResponse()); // Placeholder
         }
 
