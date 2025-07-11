@@ -378,7 +378,7 @@ namespace WamisDataCollector
                             Log($"[오류] 저수지 코드 {station.StationCode} 최신화 중 오류: {ex.Message}");
                             log.Error($"KRC 수위 일별 최신화 중 오류 (Station: {station.StationCode})", ex);
                         }
-                        UpdateProgressBar(i + 1, krcStations.Count);
+                        UpdateProgressBar(i + 1, stationsToProcess.Count); // krcStations -> stationsToProcess
                     }
                     Log("KRC 저수지 수위 일별 최신화 완료.");
                 });
@@ -455,7 +455,7 @@ namespace WamisDataCollector
                             string dateS = currentStartDate.ToString("yyyyMMdd");
                             string dateE = currentEndDate.ToString("yyyyMMdd");
 
-                            Log($"({i + 1}/{krcStations.Count}) 저수지 코드: {station.StationCode} ({station.Name}) 데이터 수집 중... ({dateS}~{dateE})");
+                            Log($"({i + 1}/{stationsToProcess.Count}) 저수지 코드: {station.StationCode} ({station.Name}) 데이터 수집 중... ({dateS}~{dateE})"); // krcStations -> stationsToProcess
 
                             try
                             {
@@ -480,7 +480,7 @@ namespace WamisDataCollector
                             }
                             currentStartDate = currentEndDate.AddDays(1);
                         }
-                        UpdateProgressBar(i + 1, krcStations.Count);
+                        UpdateProgressBar(i + 1, stationsToProcess.Count); // krcStations -> stationsToProcess
                     }
                     Log($"{taskTitle} 완료.");
                 });
