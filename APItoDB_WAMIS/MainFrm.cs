@@ -195,19 +195,74 @@ namespace WamisDataCollector
                     {
                         Log($"KRC 저수지 코드 조회 중 (페이지: {pageNo})...");
                         var response = await _krcReservoirService.GetReservoirCodesAsync(numOfRows: numOfRows, pageNo: pageNo);
-                        if (response?.Body?.Items != null && response.Body.Items.Any())
+
+                        // --- 추가적인 디버깅 로그 ---
+                        if (response == null)
+                        {
+                            Log($"[DEBUG] 페이지 {pageNo}: API 응답 객체(response)가 null입니다.");
+                            break;
+                        }
+                        if (response.Header != null)
+                        {
+                            Log($"[DEBUG] 페이지 {pageNo}: 응답 헤더 - Code: {response.Header.ReturnReasonCode}, Msg: {response.Header.ReturnAuthMsg}");
+                        }
+                        else
+                        {
+                            Log($"[DEBUG] 페이지 {pageNo}: API 응답 헤더(response.Header)가 null입니다.");
+                        }
+
+                        if (response.Body == null)
+                        {
+                            Log($"[DEBUG] 페이지 {pageNo}: API 응답 바디(response.Body)가 null입니다.");
+                            // Body가 null이면 Items, TotalCount 등에 접근 시 NullReferenceException 발생 가능하므로 이후 로직 중단 또는 보호 코드 필요
+                            // 여기서는 break를 통해 루프를 중단시킴
+                            Log("API 응답의 Body가 null이므로 코드 조회를 중단합니다.");
+                            break;
+                        }
+                        // Body가 null이 아님을 확인했으므로 내부 속성에 접근 가능
+                        Log($"[DEBUG] 페이지 {pageNo}: Body.NumOfRows={response.Body.NumOfRows}, Body.PageNo={response.Body.PageNo}, Body.TotalCount={response.Body.TotalCount}");
+
+                        if (response.Body.Items == null)
+                        {
+                            Log($"[DEBUG] 페이지 {pageNo}: API 응답 아이템 목록(response.Body.Items)이 null입니다.");
+                        }
+                        else
+                        {
+                            Log($"[DEBUG] 페이지 {pageNo}: API 응답 아이템 개수: {response.Body.Items.Count}");
+                        }
+                        // --- 디버깅 로그 끝 ---
+
+                        if (response.Body.Items != null && response.Body.Items.Any()) // response.Body가 null이 아님은 위에서 확인됨
                         {
                             allCodes.AddRange(response.Body.Items);
-                            totalCount = response.Body.TotalCount; // 첫 페이지에서 전체 개수 확인
+                            // totalCount는 첫 페이지 응답에서만 설정하거나, 또는 API가 매번 정확한 값을 준다면 매번 업데이트도 가능.
+                            // 여기서는 pageNo == 1일 때만 totalCount를 설정하여 이후 페이지에서 totalCount가 0으로 오는 경우를 방지.
+                            if (pageNo == 1 && response.Body.TotalCount > 0)
+                            {
+                                totalCount = response.Body.TotalCount;
+                            }
                             Log($"{response.Body.Items.Count}개 코드 수신 (누적: {allCodes.Count} / 전체 예상: {totalCount})");
                         }
                         else
                         {
-                            Log("더 이상 조회할 코드가 없거나 API 응답에 오류가 있습니다.");
+                            // response.Body.Items가 null이거나 비어있는 경우
+                            if (totalCount == 0 && pageNo == 1) // 첫 페이지인데 totalCount도 0이고 아이템도 없으면 정말 데이터가 없는 것
+                            {
+                                Log("조회된 저수지 코드가 없습니다. (totalCount: 0, 첫 페이지 아이템 없음)");
+                            }
+                            else if (allCodes.Count >= totalCount && totalCount > 0) // 이미 모든 아이템을 수집한 경우
+                            {
+                                Log("모든 저수지 코드를 수집한 것으로 보입니다. (누적 아이템 수 >= totalCount)");
+                            }
+                            else
+                            {
+                                Log($"페이지 {pageNo}: 추가 조회할 코드가 없거나 API 응답에 아이템이 없습니다. (누적: {allCodes.Count} / 전체 예상: {totalCount})");
+                            }
+                            // 더 이상 진행할 필요가 없으므로 루프 종료
                             break;
                         }
                         pageNo++;
-                    } while (allCodes.Count < totalCount);
+                    } while (allCodes.Count < totalCount && totalCount > 0); // totalCount가 0이면 루프 한번만 실행되도록 조건 추가
 
                     Log($"총 {allCodes.Count}개의 KRC 저수지 코드 정보 수집 완료. DB에 저장합니다...");
                     await _krcDataService.UpsertKrcReservoirStationsAsync(allCodes);
