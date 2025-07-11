@@ -24,8 +24,8 @@ namespace KRC_Services.Models
 
     public class KrcReservoirCodeBody
     {
-        [XmlArray("items")]
-        [XmlArrayItem("item")]
+        // 수정된 부분: XmlArray 및 XmlArrayItem 대신 XmlElement 사용
+        [XmlElement("item")]
         public List<KrcReservoirCodeItem> Items { get; set; }
 
         [XmlElement("numOfRows")]
