@@ -33,13 +33,14 @@ namespace KRC_Services.Services
             }
 
             var paramList = new List<string>();
+
             foreach (var kv in queryParams)
             {
                 if (kv.Key == "serviceKey")
                 {
                     paramList.Add($"{kv.Key}={kv.Value}");
                 }
-                else if (kv.Key == "county" && kv.Value == " ")
+                else if (kv.Key == "county" && kv.Value == "+")
                 {
                     // county= " " (공백)일 때는 인코딩하지 않음
                     paramList.Add($"{kv.Key}= ");
@@ -51,7 +52,8 @@ namespace KRC_Services.Services
             }
             var requestUrl = baseUrl + "?" + string.Join("&", paramList);
 
-            Console.WriteLine($"Requesting KRC API: {requestUrl}");
+            Console.WriteLine($"Requesting KRC API: [{requestUrl}]"); // 대괄호로 공백 확인
+
 
             try
             {
