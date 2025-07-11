@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WamisDataCollector.Services;
+using WamisDataCollector.Models; // StationInfo 사용을 위해 추가
 using log4net;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,8 +59,20 @@ namespace WamisDataCollector
                 _krcReservoirService = new KrcReservoirService(httpClientForKrc); // Pass krcApiKey if constructor takes it, or it reads from config
                 _krcDataService = new KrcDataService(connectionString, this.Log);
 
-                // Ensure KRC tables exist
-             //   Task.Run(async () => await _wamisDataService.EnsureTablesExistAsync()).Wait(); // Ensure krc_reservoir_daily is created
+                // Ensure all necessary tables (including KRC) exist
+                try
+                {
+                    Log("데이터베이스 테이블 구조를 확인/생성합니다...");
+                    Task.Run(async () => await _wamisDataService.EnsureTablesExistAsync()).Wait();
+                    Log("데이터베이스 테이블 준비 완료.");
+                }
+                catch (Exception dbEx)
+                {
+                    log.Fatal("데이터베이스 테이블 생성 중 오류 발생", dbEx);
+                    MessageBox.Show($"데이터베이스 테이블 생성 중 오류가 발생했습니다: {dbEx.Message}", "DB 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // 테이블 생성 실패 시 프로그램 종료 또는 다른 적절한 처리
+                    Environment.Exit(1);
+                }
             }
             catch (Exception ex)
             {
@@ -288,20 +301,36 @@ namespace WamisDataCollector
                 await RunTask(async () =>
                 {
                     Log("KRC 저수지 수위 일별 최신화를 시작합니다...");
-                    // KRC 저수지 코드 목록을 krc_reservoircode 테이블에서 가져오도록 수정
-                    var krcStations = await _wamisDataService.GetKrcReservoirStationInfosAsync();
-                    if (krcStations == null || !krcStations.Any())
+                    var allKrcStations = await _wamisDataService.GetKrcReservoirStationInfosAsync(); // 변수명 변경 및 StationInfo 사용
+                    if (allKrcStations == null || !allKrcStations.Any())
                     {
                         Log("DB에 KRC 저수지 코드 정보가 없습니다. 먼저 'KRC 전체 코드 조회/저장'을 실행하세요.");
                         return;
                     }
 
-                    Log($"총 {krcStations.Count}개의 KRC 저수지에 대해 일별 최신화를 진행합니다.");
-
-                    for (int i = 0; i < krcStations.Count; i++)
+                    List<StationInfo> stationsToProcess;
+                    if (isTestMode)
                     {
-                        var station = krcStations[i];
-                        Log($"({i + 1}/{krcStations.Count}) 저수지 코드: {station.StationCode} ({station.Name}) 최신화 중...");
+                        Log($"[테스트 모드] KRC 저수지 수위 일별 최신화를 첫 번째 저수지에 대해서만 진행합니다.");
+                        stationsToProcess = allKrcStations.Take(1).ToList();
+                        if (!stationsToProcess.Any())
+                        {
+                            Log("[테스트 모드] 처리할 저수지가 목록에 없습니다.");
+                            return;
+                        }
+                        Log($"[테스트 모드] 대상 저수지: {stationsToProcess.First().StationCode} ({stationsToProcess.First().Name})");
+                    }
+                    else
+                    {
+                        stationsToProcess = allKrcStations;
+                    }
+
+                    Log($"총 {stationsToProcess.Count}개의 KRC 저수지에 대해 일별 최신화를 진행합니다.");
+
+                    for (int i = 0; i < stationsToProcess.Count; i++)
+                    {
+                        var station = stationsToProcess[i];
+                        Log($"({i + 1}/{stationsToProcess.Count}) 저수지 코드: {station.StationCode} ({station.Name}) 최신화 중...");
 
                         try
                         {
@@ -391,7 +420,7 @@ namespace WamisDataCollector
                         return;
                     }
 
-            List<KRC_Services.Models.KrcReservoirStationInfo> stationsToProcess;
+            List<StationInfo> stationsToProcess; // KRC_Services.Models.KrcReservoirStationInfo 대신 StationInfo 사용
             if (isTestMode)
             {
                 Log($"[테스트 모드] {taskTitle}을(를) 첫 번째 저수지에 대해서만 진행합니다.");
