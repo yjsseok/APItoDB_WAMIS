@@ -60,25 +60,32 @@ namespace WamisDataCollector
                 _krcDataService = new KrcDataService(connectionString, this.Log);
 
                 // Ensure all necessary tables (including KRC) exist
-                try
-                {
-                    Log("데이터베이스 테이블 구조를 확인/생성합니다...");
-                    Task.Run(async () => await _wamisDataService.EnsureTablesExistAsync()).Wait();
-                    Log("데이터베이스 테이블 준비 완료.");
-                }
-                catch (Exception dbEx)
-                {
-                    log.Fatal("데이터베이스 테이블 생성 중 오류 발생", dbEx);
-                    MessageBox.Show($"데이터베이스 테이블 생성 중 오류가 발생했습니다: {dbEx.Message}", "DB 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    // 테이블 생성 실패 시 프로그램 종료 또는 다른 적절한 처리
-                    Environment.Exit(1);
-                }
+                // EnsureTablesExistAsync 호출은 MainFrm_Load로 이동
             }
             catch (Exception ex)
             {
                 log.Fatal("설정 파일 로드 또는 서비스 초기화 중 심각한 오류 발생", ex);
                 MessageBox.Show($"설정 파일(App.config) 로드 또는 서비스 초기화 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
+            }
+        }
+
+        private async void MainFrm_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                // 이제 EnsureTablesExistAsync는 UI 스레드에서 await되므로,
+                // 그 안의 _logAction(this.Log) 호출은 안전합니다.
+                // (Wamis_DataService.EnsureTablesExistAsync 내부의 ConfigureAwait(false)는 제거되었다고 가정)
+                await _wamisDataService.EnsureTablesExistAsync();
+            }
+            catch (Exception dbEx)
+            {
+                var actualException = dbEx is AggregateException aggEx ? aggEx.Flatten().InnerExceptions.FirstOrDefault() ?? dbEx : dbEx;
+                log.Fatal("데이터베이스 테이블 생성 중 오류 발생 (MainFrm_Load)", actualException);
+                MessageBox.Show($"데이터베이스 테이블 생성 중 오류가 발생했습니다: {actualException.Message}", "DB 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // 폼 로드 시 DB 오류가 발생하면 프로그램을 계속 진행하기 어려울 수 있음
+                // Application.Exit(); 또는 다른 오류 처리
             }
         }
 
