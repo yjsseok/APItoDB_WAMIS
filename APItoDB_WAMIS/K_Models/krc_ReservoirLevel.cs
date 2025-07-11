@@ -15,8 +15,7 @@ namespace KRC_Services.Models
 
     public class KrcReservoirLevelBody
     {
-        [XmlArray("items")]
-        [XmlArrayItem("item")]
+        [XmlElement("item")] // XmlArray 및 XmlArrayItem 대신 XmlElement 사용
         public List<KrcReservoirLevelItem> Items { get; set; }
 
         [XmlElement("numOfRows")]
