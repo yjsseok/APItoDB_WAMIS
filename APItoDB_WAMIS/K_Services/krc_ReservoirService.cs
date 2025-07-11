@@ -173,11 +173,17 @@ namespace KRC_Services.Services
             {
                 throw new ArgumentException("저수지 코드(facCode) 또는 저수지 위치(county) 중 하나는 반드시 입력해야 합니다.");
             }
-            if (isTestMode)
-            {
-                Console.WriteLine("[TEST MODE] GetReservoirLevelsForInitialSetupAsync called.");
-                return new KrcReservoirLevelResponse { Body = new KrcReservoirLevelBody { Items = new List<KrcReservoirLevelItem>() } };
-            }
+            // 테스트 모드에서도 API를 호출하도록 다음 if 블록을 주석 처리 또는 제거합니다.
+            // MainFrm.cs에서 이미 테스트 모드 시 단일 지점만 선택하도록 로직이 수정되었으므로,
+            // 이 서비스 메소드는 isTestMode 플래그에 관계없이 실제 API를 호출하도록 합니다.
+            // if (isTestMode)
+            // {
+            //    Console.WriteLine("[TEST MODE] GetReservoirLevelsForInitialSetupAsync called for facCode: " + facCode);
+            //    // 테스트를 위해 API를 호출하되, 매우 작은 양의 데이터를 요청하거나,
+            //    // 또는 여기서는 MainFrm에서 이미 지점 수를 줄였으므로 그대로 진행.
+            //    // 만약 API 호출 자체를 막고 싶다면 이 블록을 활성화.
+            //    // return new KrcReservoirLevelResponse { Body = new KrcReservoirLevelBody { Items = new List<KrcReservoirLevelItem>() } };
+            // }
 
             var queryParams = new Dictionary<string, string>
         {

@@ -383,19 +383,36 @@ namespace WamisDataCollector
                 await RunTask(async () =>
                 {
                     Log($"{taskTitle}을(를) 시작합니다...");
-                    // KRC 저수지 코드 목록을 krc_reservoircode 테이블에서 가져오도록 수정
-                    var krcStations = await _wamisDataService.GetKrcReservoirStationInfosAsync();
-                    if (krcStations == null || !krcStations.Any())
+            var allKrcStations = await _wamisDataService.GetKrcReservoirStationInfosAsync();
+
+            if (allKrcStations == null || !allKrcStations.Any())
                     {
                         Log("DB에 KRC 저수지 코드 정보가 없습니다. 먼저 'KRC 전체 코드 조회/저장'을 실행하세요.");
                         return;
                     }
 
-                    Log($"총 {krcStations.Count}개의 KRC 저수지에 대해 {taskTitle}을(를) 진행합니다.");
+            List<KRC_Services.Models.KrcReservoirStationInfo> stationsToProcess;
+            if (isTestMode)
+            {
+                Log($"[테스트 모드] {taskTitle}을(를) 첫 번째 저수지에 대해서만 진행합니다.");
+                stationsToProcess = allKrcStations.Take(1).ToList();
+                if (!stationsToProcess.Any())
+                {
+                    Log("[테스트 모드] 처리할 저수지가 목록에 없습니다.");
+                    return;
+                }
+                Log($"[테스트 모드] 대상 저수지: {stationsToProcess.First().StationCode} ({stationsToProcess.First().Name})");
+            }
+            else
+            {
+                stationsToProcess = allKrcStations;
+            }
 
-                    for (int i = 0; i < krcStations.Count; i++)
+            Log($"총 {stationsToProcess.Count}개의 KRC 저수지에 대해 {taskTitle}을(를) 진행합니다.");
+
+            for (int i = 0; i < stationsToProcess.Count; i++)
                     {
-                        var station = krcStations[i];
+                var station = stationsToProcess[i];
                         DateTime currentStartDate = startDate;
 
                         while (currentStartDate <= endDate)
