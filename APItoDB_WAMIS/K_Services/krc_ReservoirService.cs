@@ -24,14 +24,6 @@ namespace KRC_Services.Services
 
         private async Task<T> CallApiAsync<T>(string baseUrl, Dictionary<string, string> queryParams) where T : class
         {
-            // county, fac_name, fac_code 모두 없으면 county= " " 추가
-            if (!queryParams.ContainsKey("county") &&
-                !queryParams.ContainsKey("fac_name") &&
-                !queryParams.ContainsKey("fac_code"))
-            {
-                queryParams.Add("county", " ");
-            }
-
             var paramList = new List<string>();
 
             foreach (var kv in queryParams)
@@ -40,11 +32,11 @@ namespace KRC_Services.Services
                 {
                     paramList.Add($"{kv.Key}={kv.Value}");
                 }
-                else if (kv.Key == "county" && kv.Value == "+")
-                {
-                    // county= " " (공백)일 때는 인코딩하지 않음
-                    paramList.Add($"{kv.Key}= ");
-                }
+                // county 파라미터가 공백(" ")일 경우에도 Uri.EscapeDataString을 적용 (원복)
+                // else if (kv.Key == "county" && kv.Value == " ")
+                // {
+                //    paramList.Add($"{kv.Key}= "); // 공백을 그대로 전달
+                // }
                 else
                 {
                     paramList.Add($"{kv.Key}={Uri.EscapeDataString(kv.Value ?? "")}");
@@ -90,6 +82,7 @@ namespace KRC_Services.Services
                     response.EnsureSuccessStatusCode();
                 }
 
+                Console.WriteLine($"[DEBUG] KRC API Response XML for {typeof(T).Name}:\n{xmlData}"); // XML 데이터 로깅
                 return DeserializeXml<T>(xmlData);
             }
             catch (HttpRequestException ex)
@@ -142,28 +135,16 @@ namespace KRC_Services.Services
             // 여기서는 county가 제공될 때만 추가하는 것으로 단순화. 만약 fac_name 없이 county만으로 조회해야하고 빈 county가 유효하다면,
             // 호출하는 쪽(MainFrm)에서 GetReservoirCodesAsync(county: " ") 와 같이 명시적으로 호출하거나,
             // 이 메소드 내에서 county가 null이고 facName도 null일 때 county = " " 로 설정하는 로직 추가 필요.
-            // 현재는 전달된 값이 있을 때만 설정.
-            if (!string.IsNullOrWhiteSpace(county)) // county가 null 또는 공백이 아닐 때만 추가
+            if (string.IsNullOrWhiteSpace(facName) && string.IsNullOrWhiteSpace(county))
+            {
+                // facName과 county가 모두 제공되지 않은 경우, 전체 지역 조회를 위해 county를 공백으로 설정
+                queryParams.Add("county", " ");
+            }
+            else if (!string.IsNullOrWhiteSpace(county))
             {
                 queryParams.Add("county", county);
             }
-            else if (string.IsNullOrWhiteSpace(facName) && county == null)
-            {
-                // KRC API 가이드에 따르면 저수지명(fac_name) 또는 시군명(county) 중 1개 항목은 필수 입력입니다.
-                // 둘 다 없는 경우, county를 빈 문자열로 보내는 것이 API의 특정 요구사항일 수 있으므로 기존 로직을 유지하거나
-                // 명시적으로 오류를 발생시킬 수 있습니다. 여기서는 API가 빈 county를 어떻게 처리할지 불분명하므로,
-                // 일단은 아무것도 보내지 않거나, 기존처럼 빈 문자열을 보내는 것을 고려할 수 있습니다.
-                // 사용자의 이전 코드 `queryList.Add("county= ");`는 빈 값을 전달하려는 의도로 보입니다.
-                // 이를 Dictionary에 맞게 수정하면 queryParams.Add("county", " ");
-                // 그러나 이 API가 fac_name 없이 county만으로 조회 시 county가 빈 값이어도 되는지는 확인 필요.
-                // 안전하게 가려면, 둘 다 없으면 예외를 발생시키거나, MainFrm에서 호출 시 파라미터 검증을 강화.
-                // 여기서는 일단 county 파라미터가 명시적으로 (null이 아닌) 빈 문자열로 들어오면 그대로 사용하도록 수정.
-                if (county != null) // county가 "" 로 명시적으로 들어온 경우
-                {
-                     queryParams.Add("county", county);
-                }
-                // else: facName도 없고 county도 null이면 아무것도 추가 안함. API가 오류 반환할 것으로 예상.
-            }
+            // facName만 제공된 경우는 county를 추가하지 않음
 
 
             // Console.WriteLine($"Request URL (Reservoir Codes): {requestUrl}"); // CallApiAsync 내부에서 로깅
