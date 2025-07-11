@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Npgsql;
+using NpgsqlTypes; // NpgsqlDbType 사용을 위해 추가
 using KRC_Services.Models; // KRC Models
 
 namespace KRC_Services.Services
@@ -57,9 +58,19 @@ namespace KRC_Services.Services
 
                 using (var cmd = new NpgsqlCommand(upsertCommand, conn))
                 {
-                    cmd.Parameters.AddWithValue("fac_codes", facCodes);
-                    cmd.Parameters.AddWithValue("fac_names", facNames.Select(n => (object)n ?? DBNull.Value).ToList());
-                    cmd.Parameters.AddWithValue("counties", counties.Select(c => (object)c ?? DBNull.Value).ToList());
+                    // 수정된 파라미터 설정: NpgsqlDbType 명시
+                    var facCodesParam = new NpgsqlParameter("fac_codes", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text);
+                    facCodesParam.Value = facCodes;
+                    cmd.Parameters.Add(facCodesParam);
+
+                    var facNamesParam = new NpgsqlParameter("fac_names", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text);
+                    facNamesParam.Value = facNames.Select(n => (object)n ?? DBNull.Value).ToList();
+                    cmd.Parameters.Add(facNamesParam);
+
+                    var countiesParam = new NpgsqlParameter("counties", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text);
+                    countiesParam.Value = counties.Select(c => (object)c ?? DBNull.Value).ToList();
+                    cmd.Parameters.Add(countiesParam);
+
                     var affectedRows = await cmd.ExecuteNonQueryAsync();
                     _logAction($"{affectedRows} (요청된 KRC 저수지 {facCodes.Count}개 중) KRC 저수지 코드 정보가 `krc_reservoircode` 테이블에 처리/업데이트되었습니다.");
                 }
