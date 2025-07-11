@@ -141,12 +141,12 @@ namespace KRC_Services.Services
 
                 using (var cmd = new NpgsqlCommand(commandText, conn))
                 {
-                    cmd.Parameters.AddWithValue("fac_codes", facCodes);
-                    cmd.Parameters.AddWithValue("check_dates", obsDates);
-                    cmd.Parameters.AddWithValue("fac_names", facNames.Select(n => (object)n ?? DBNull.Value).ToList());
-                    cmd.Parameters.AddWithValue("counties", counties.Select(c => (object)c ?? DBNull.Value).ToList());
-                    cmd.Parameters.AddWithValue("water_levels", waterLevels.Select(wl => wl.HasValue ? (object)wl.Value : DBNull.Value).ToList());
-                    cmd.Parameters.AddWithValue("rates", rates.Select(r => r.HasValue ? (object)r.Value : DBNull.Value).ToList());
+                    cmd.Parameters.Add(new NpgsqlParameter("fac_codes", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text) { Value = facCodes });
+                    cmd.Parameters.Add(new NpgsqlParameter("check_dates", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Date) { Value = obsDates });
+                    cmd.Parameters.Add(new NpgsqlParameter("fac_names", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text) { Value = facNames.Select(n => (object)n ?? DBNull.Value).ToList() });
+                    cmd.Parameters.Add(new NpgsqlParameter("counties", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Text) { Value = counties.Select(c => (object)c ?? DBNull.Value).ToList() });
+                    cmd.Parameters.Add(new NpgsqlParameter("water_levels", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Double) { Value = waterLevels.Select(wl => wl.HasValue ? (object)wl.Value : DBNull.Value).ToList() });
+                    cmd.Parameters.Add(new NpgsqlParameter("rates", NpgsqlTypes.NpgsqlDbType.Array | NpgsqlTypes.NpgsqlDbType.Double) { Value = rates.Select(r => r.HasValue ? (object)r.Value : DBNull.Value).ToList() });
 
                     var affectedRows = await cmd.ExecuteNonQueryAsync();
                     _logAction($"{affectedRows} (총 {uniqueData.Count}개 항목) KRC 저수지 일별 수위/저수율 데이터가 `reservoirlevel` 테이블에 처리/업데이트되었습니다.");
