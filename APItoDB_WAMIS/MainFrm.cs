@@ -360,7 +360,8 @@ namespace WamisDataCollector
 
                             string endDateForApi = DateTime.Now.ToString("yyyyMMdd");
 
-                            if (Convert.ToDateTime(startDateForApi) > Convert.ToDateTime(endDateForApi))
+                            // "yyyyMMdd" 형식은 문자열로 비교하는 것이 안전합니다.
+                            if (string.Compare(startDateForApi, endDateForApi) > 0)
                             {
                                 Log($"{station.StationCode}: 이미 최신 데이터입니다 (마지막 저장일: {lastDate?.ToString("yyyy-MM-dd")}).");
                                 continue;
