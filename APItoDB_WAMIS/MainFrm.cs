@@ -387,6 +387,7 @@ namespace WamisDataCollector
                             log.Error($"KRC 수위 일별 최신화 중 오류 (Station: {station.StationCode})", ex);
                         }
                         UpdateProgressBar(i + 1, stationsToProcess.Count); // krcStations -> stationsToProcess
+                        await Task.Delay(100); // Delay time changed to 100ms
                     }
                     Log("KRC 저수지 수위 일별 최신화 완료.");
                 });
@@ -489,6 +490,7 @@ namespace WamisDataCollector
                             currentStartDate = currentEndDate.AddDays(1);
                         }
                         UpdateProgressBar(i + 1, stationsToProcess.Count); // krcStations -> stationsToProcess
+                        await Task.Delay(100); // Delay time changed to 100ms
                     }
                     Log($"{taskTitle} 완료.");
                 });
