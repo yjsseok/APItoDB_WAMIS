@@ -59,30 +59,28 @@ namespace KRC_Services.Services
                     xmlData = await reader.ReadToEndAsync();
                 }
 
-                if (!response.IsSuccessStatusCode)
+                // HTTP 상태 코드가 성공이더라도, XML 내용에 OpenAPI 오류가 포함된 경우가 있으므로 먼저 확인
+                if (xmlData.Contains("<OpenAPI_ServiceResponse>"))
                 {
-                    try
+                    var errorSerializer = new XmlSerializer(typeof(KrcOpenApiErrorResponse));
+                    using (var reader = new StringReader(xmlData))
                     {
-                        KrcOpenApiErrorResponse errorResponse = DeserializeXml<KrcOpenApiErrorResponse>(xmlData);
-                        if (errorResponse != null && errorResponse.CmmMsgHeader != null)
+                        var errorResponse = errorSerializer.Deserialize(reader) as KrcOpenApiErrorResponse;
+                        if (errorResponse?.CmmMsgHeader != null)
                         {
                             throw new HttpRequestException(
                                 $"API Error: {errorResponse.CmmMsgHeader.ErrMsg} (Code: {errorResponse.CmmMsgHeader.ReturnReasonCode}, AuthMsg: {errorResponse.CmmMsgHeader.ReturnAuthMsg}). URL: {requestUrl}");
                         }
                     }
-                    catch (InvalidOperationException)
-                    {
-                        var genericResponse = DeserializeXml<KrcReservoirCodeResponse>(xmlData);
-                        if (genericResponse != null && genericResponse.Header != null)
-                        {
-                            throw new HttpRequestException(
-                               $"API Provider Error: {genericResponse.Header.ReturnAuthMsg} (Code: {genericResponse.Header.ReturnReasonCode}). URL: {requestUrl}");
-                        }
-                    }
-                    response.EnsureSuccessStatusCode();
+                    // 오류 응답을 파싱하지 못한 경우 일반 예외 throw
+                    throw new HttpRequestException($"Received an OpenAPI error response, but failed to parse the error details. URL: {requestUrl}. XML: {xmlData}");
                 }
 
-                Console.WriteLine($"[DEBUG] KRC API Response XML for {typeof(T).Name}:\n{xmlData}"); // XML 데이터 로깅
+                // HTTP 상태 코드가 실패인 경우, EnsureSuccessStatusCode가 예외를 발생시키도록 함
+                response.EnsureSuccessStatusCode();
+
+                // 정상 응답으로 간주하고 역직렬화 시도
+                Console.WriteLine($"[DEBUG] KRC API Response XML for {typeof(T).Name}:\n{xmlData}");
                 return DeserializeXml<T>(xmlData);
             }
             catch (HttpRequestException ex)
