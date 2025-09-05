@@ -24,7 +24,6 @@ namespace WamisDataCollector
         public MainFrm()
         {
             InitializeComponent();
-
             try
             {
                 // WAMIS Services
@@ -74,9 +73,6 @@ namespace WamisDataCollector
         {
             try
             {
-                // 이제 EnsureTablesExistAsync는 UI 스레드에서 await되므로,
-                // 그 안의 _logAction(this.Log) 호출은 안전합니다.
-                // (Wamis_DataService.EnsureTablesExistAsync 내부의 ConfigureAwait(false)는 제거되었다고 가정)
                 await _wamisDataService.EnsureTablesExistAsync();
             }
             catch (Exception dbEx)
