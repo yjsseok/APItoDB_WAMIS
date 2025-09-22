@@ -109,6 +109,10 @@
     <Compile Include="MainFrm.Designer.cs">
       <DependentUpon>MainFrm.cs</DependentUpon>
     </Compile>
+    <Compile Include="A_Models\ASOS_WeatherData.cs" />
+    <Compile Include="A_Models\ASOS_ErrorResponse.cs" />
+    <Compile Include="A_Services\asos_DataService.cs" />
+    <Compile Include="A_Services\asos_WeatherService.cs" />
     <Compile Include="K_Models\krc_ErrorResponse.cs" />
     <Compile Include="K_Models\krc_ReservoirCode.cs" />
     <Compile Include="K_Models\krc_ReservoirLevel.cs" />

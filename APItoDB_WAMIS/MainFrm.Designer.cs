@@ -10,6 +10,10 @@
             {
                 components.Dispose();
             }
+            if (disposing)
+            {
+                _asosWeatherService?.Dispose();
+            }
             base.Dispose(disposing);
         }
 
@@ -33,8 +37,13 @@
             this._btnKrcDailyUpdate = new System.Windows.Forms.Button();
             this._btnKrcBackfill = new System.Windows.Forms.Button();
             this.groupBoxWamis = new System.Windows.Forms.GroupBox();
+            this.groupBoxAsos = new System.Windows.Forms.GroupBox();
+            this._btnAsos초기데이터로드 = new System.Windows.Forms.Button();
+            this._btnAsos일별최신화 = new System.Windows.Forms.Button();
+            this._btnAsos누락데이터보충 = new System.Windows.Forms.Button();
             this.groupBoxKRC.SuspendLayout();
             this.groupBoxWamis.SuspendLayout();
+            this.groupBoxAsos.SuspendLayout();
             this.SuspendLayout();
             // 
             // _dtpStartDate
@@ -94,13 +103,13 @@
             this._txtLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this._txtLogs.Location = new System.Drawing.Point(14, 160);
+            this._txtLogs.Location = new System.Drawing.Point(14, 220);
             this._txtLogs.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this._txtLogs.Multiline = true;
             this._txtLogs.Name = "_txtLogs";
             this._txtLogs.ReadOnly = true;
             this._txtLogs.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this._txtLogs.Size = new System.Drawing.Size(868, 476);
+            this._txtLogs.Size = new System.Drawing.Size(868, 416);
             this._txtLogs.TabIndex = 5;
             // 
             // _progressBar
@@ -208,11 +217,54 @@
             this.groupBoxWamis.TabStop = false;
             this.groupBoxWamis.Text = "WAMIS 수자원";
             //
+            // groupBoxAsos
+            //
+            this.groupBoxAsos.Controls.Add(this._btnAsos초기데이터로드);
+            this.groupBoxAsos.Controls.Add(this._btnAsos일별최신화);
+            this.groupBoxAsos.Controls.Add(this._btnAsos누락데이터보충);
+            this.groupBoxAsos.Location = new System.Drawing.Point(14, 157);
+            this.groupBoxAsos.Name = "groupBoxAsos";
+            this.groupBoxAsos.Size = new System.Drawing.Size(868, 53);
+            this.groupBoxAsos.TabIndex = 13;
+            this.groupBoxAsos.TabStop = false;
+            this.groupBoxAsos.Text = "기상청 ASOS";
+            //
+            // _btnAsos초기데이터로드
+            //
+            this._btnAsos초기데이터로드.Location = new System.Drawing.Point(10, 20);
+            this._btnAsos초기데이터로드.Name = "_btnAsos초기데이터로드";
+            this._btnAsos초기데이터로드.Size = new System.Drawing.Size(140, 28);
+            this._btnAsos초기데이터로드.TabIndex = 0;
+            this._btnAsos초기데이터로드.Text = "초기데이터로드";
+            this._btnAsos초기데이터로드.UseVisualStyleBackColor = true;
+            this._btnAsos초기데이터로드.Click += new System.EventHandler(this.BtnAsos초기데이터로드_Click);
+            //
+            // _btnAsos일별최신화
+            //
+            this._btnAsos일별최신화.Location = new System.Drawing.Point(156, 20);
+            this._btnAsos일별최신화.Name = "_btnAsos일별최신화";
+            this._btnAsos일별최신화.Size = new System.Drawing.Size(140, 28);
+            this._btnAsos일별최신화.TabIndex = 1;
+            this._btnAsos일별최신화.Text = "일별최신화";
+            this._btnAsos일별최신화.UseVisualStyleBackColor = true;
+            this._btnAsos일별최신화.Click += new System.EventHandler(this.BtnAsos일별최신화_Click);
+            //
+            // _btnAsos누락데이터보충
+            //
+            this._btnAsos누락데이터보충.Location = new System.Drawing.Point(302, 20);
+            this._btnAsos누락데이터보충.Name = "_btnAsos누락데이터보충";
+            this._btnAsos누락데이터보충.Size = new System.Drawing.Size(140, 28);
+            this._btnAsos누락데이터보충.TabIndex = 2;
+            this._btnAsos누락데이터보충.Text = "누락데이터보충";
+            this._btnAsos누락데이터보충.UseVisualStyleBackColor = true;
+            this._btnAsos누락데이터보충.Click += new System.EventHandler(this.BtnAsos누락데이터보충_Click);
+            //
             // MainFrm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(896, 701);
+            this.Controls.Add(this.groupBoxAsos);
             this.Controls.Add(this.groupBoxWamis);
             this.Controls.Add(this.groupBoxKRC);
             this.Controls.Add(this._chkTestMode);
@@ -225,9 +277,10 @@
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainFrm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "데이터 수집기 (WAMIS & KRC)";
+            this.Text = "데이터 수집기 (WAMIS & KRC & ASOS)";
             this.groupBoxKRC.ResumeLayout(false);
             this.groupBoxWamis.ResumeLayout(false);
+            this.groupBoxAsos.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -251,5 +304,9 @@
         private System.Windows.Forms.Button _btnKrcInitialLoad;
         private System.Windows.Forms.Button _btnKrcFetchAllCodes;
         private System.Windows.Forms.GroupBox groupBoxWamis;
+        private System.Windows.Forms.GroupBox groupBoxAsos;
+        private System.Windows.Forms.Button _btnAsos초기데이터로드;
+        private System.Windows.Forms.Button _btnAsos일별최신화;
+        private System.Windows.Forms.Button _btnAsos누락데이터보충;
     }
 }

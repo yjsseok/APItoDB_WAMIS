@@ -8,6 +8,7 @@ using log4net;
 using System.Collections.Generic;
 using System.Linq;
 using KRC_Services.Services;
+using APItoDB_WAMIS.A_Services;
 
 namespace WamisDataCollector
 {
@@ -20,6 +21,10 @@ namespace WamisDataCollector
         private KrcReservoirService _krcReservoirService;
         private KrcDataService _krcDataService;
         private Wamis_DataService _wamisDataService; // For KRC station codes and last dates
+
+        // ASOS Services
+        private asos_DataService _asosDataService;
+        private asos_WeatherService _asosWeatherService;
 
         public MainFrm()
         {
@@ -40,6 +45,10 @@ namespace WamisDataCollector
                 var krcApiKey = ConfigurationManager.AppSettings["KrcApiKey"];
                 if (string.IsNullOrEmpty(krcApiKey)) missingSettings.Add("KrcApiKey");
 
+                // ASOS Services
+                var asosApiKey = ConfigurationManager.AppSettings["ASOSApiKey"];
+                if (string.IsNullOrEmpty(asosApiKey)) missingSettings.Add("ASOSApiKey");
+
 
                 if (missingSettings.Count > 0)
                 {
@@ -58,6 +67,10 @@ namespace WamisDataCollector
                 _krcReservoirService = new KrcReservoirService(httpClientForKrc); // Pass krcApiKey if constructor takes it, or it reads from config
                 _krcDataService = new KrcDataService(connectionString, this.Log);
 
+                // Initialize ASOS Services
+                _asosDataService = new asos_DataService(connectionString, this.Log);
+                _asosWeatherService = new asos_WeatherService();
+
                 // Ensure all necessary tables (including KRC) exist
                 // EnsureTablesExistAsync 호출은 MainFrm_Load로 이동
             }
@@ -74,6 +87,7 @@ namespace WamisDataCollector
             try
             {
                 await _wamisDataService.EnsureTablesExistAsync();
+                await _asosDataService.EnsureTablesExistAsync();
             }
             catch (Exception dbEx)
             {
@@ -162,6 +176,11 @@ namespace WamisDataCollector
             _btnKrcInitialLoad.Enabled = enabled;
             _btnKrcDailyUpdate.Enabled = enabled;
             _btnKrcBackfill.Enabled = enabled;
+
+            // ASOS buttons
+            _btnAsos초기데이터로드.Enabled = enabled;
+            _btnAsos일별최신화.Enabled = enabled;
+            _btnAsos누락데이터보충.Enabled = enabled;
 
             _progressBar.Style = enabled ? ProgressBarStyle.Continuous : ProgressBarStyle.Marquee;
             _progressBar.MarqueeAnimationSpeed = enabled ? 0 : 100;
@@ -490,6 +509,143 @@ namespace WamisDataCollector
                     }
                     Log($"{taskTitle} 완료.");
                 });
+            }
+        }
+
+        // ASOS Button Handlers
+        private async void BtnAsos초기데이터로드_Click(object sender, EventArgs e)
+        {
+            DateTime startDate = new DateTime(1985, 1, 1);
+            DateTime endDate = DateTime.Today;
+            bool isTestMode = _chkTestMode.Checked;
+
+            if (isTestMode)
+            {
+                // 테스트 모드: 최근 3일만 처리
+                startDate = DateTime.Today.AddDays(-3);
+                endDate = DateTime.Today.AddDays(-1);
+            }
+
+            if (MessageBox.Show($"기상청 ASOS 초기 데이터 로드를 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까?\n기간: {startDate:yyyy-MM-dd} ~ {endDate:yyyy-MM-dd}{(isTestMode ? "" : "\n시간이 오래 걸릴 수 있습니다.")}",
+                                $"기상청 ASOS 초기 데이터 로드{(isTestMode ? " (테스트)" : "")}",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                await RunTask(async () => await CollectAsosWeatherDataAsync(startDate, endDate, $"기상청 ASOS 초기 데이터 로드{(isTestMode ? " (테스트)" : "")}"));
+            }
+        }
+
+        private async void BtnAsos일별최신화_Click(object sender, EventArgs e)
+        {
+            bool isTestMode = _chkTestMode.Checked;
+            
+            if (MessageBox.Show($"기상청 ASOS 일별 최신화를 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까?",
+                                $"기상청 ASOS 일별 최신화{(isTestMode ? " (테스트)" : "")}",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                await RunTask(async () =>
+                {
+                    DateTime yesterday = DateTime.Today.AddDays(-1);
+                    await CollectAsosWeatherDataAsync(yesterday, yesterday, $"기상청 ASOS 일별 최신화{(isTestMode ? " (테스트)" : "")}");
+                });
+            }
+        }
+
+        private async void BtnAsos누락데이터보충_Click(object sender, EventArgs e)
+        {
+            bool isTestMode = _chkTestMode.Checked;
+            int checkDays = isTestMode ? 7 : 30; // 테스트 모드에서는 최근 7일만 확인
+            
+            if (MessageBox.Show($"기상청 ASOS 누락 데이터 보충을 {(isTestMode ? "(테스트 모드)" : "")} 시작하시겠습니까?\n(최근 {checkDays}일간 누락된 데이터를 찾아 보충합니다)",
+                                $"기상청 ASOS 누락 데이터 보충{(isTestMode ? " (테스트)" : "")}",
+                                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                await RunTask(async () =>
+                {
+                    Log($"기상청 ASOS 누락 데이터 보충{(isTestMode ? " (테스트 모드)" : "")}을 시작합니다...");
+                    
+                    DateTime startDate = DateTime.Today.AddDays(-checkDays);
+                    DateTime endDate = DateTime.Today.AddDays(-1);
+                    
+                    var missingDates = await _asosDataService.GetMissingDatesAsync(startDate, endDate);
+                    
+                    if (missingDates == null || !missingDates.Any())
+                    {
+                        Log("누락된 데이터가 없습니다.");
+                        return;
+                    }
+
+                    Log($"총 {missingDates.Count}개의 누락된 날짜를 발견했습니다.");
+                    
+                    // 테스트 모드에서는 처음 3개 날짜만 처리
+                    var datesToProcess = isTestMode ? missingDates.Take(3).ToList() : missingDates;
+                    
+                    if (isTestMode && datesToProcess.Count < missingDates.Count)
+                    {
+                        Log($"[테스트 모드] 전체 {missingDates.Count}개 중 처음 {datesToProcess.Count}개만 처리합니다.");
+                    }
+                    
+                    int processedCount = 0;
+                    foreach (var missingDate in datesToProcess)
+                    {
+                        try
+                        {
+                            Log($"누락 데이터 수집 중: {missingDate:yyyy-MM-dd} ({++processedCount}/{datesToProcess.Count})");
+                            
+                            var weatherData = await _asosWeatherService.GetDailyWeatherDataAsync(missingDate);
+                            if (weatherData != null && weatherData.Any())
+                            {
+                                await _asosDataService.InsertWeatherDataBulkAsync(weatherData);
+                                Log($"누락 데이터 저장 완료: {missingDate:yyyy-MM-dd}, {weatherData.Count}건");
+                            }
+                            else
+                            {
+                                Log($"누락 데이터 없음: {missingDate:yyyy-MM-dd}");
+                            }
+
+                            UpdateProgressBar(processedCount, datesToProcess.Count);
+                            await Task.Delay(200); // API 호출 제한 고려
+                        }
+                        catch (Exception ex)
+                        {
+                            Log($"[오류] 날짜 {missingDate:yyyy-MM-dd} 데이터 수집 중 오류: {ex.Message}");
+                            log.Error($"ASOS 누락 데이터 보충 중 오류 (날짜: {missingDate:yyyy-MM-dd})", ex);
+                        }
+                    }
+                    
+                    Log($"기상청 ASOS 누락 데이터 보충{(isTestMode ? " (테스트 모드)" : "")} 완료.");
+                });
+            }
+        }
+
+        private async Task CollectAsosWeatherDataAsync(DateTime startDate, DateTime endDate, string taskTitle)
+        {
+            Log($"{taskTitle}을 시작합니다... ({startDate:yyyy-MM-dd} ~ {endDate:yyyy-MM-dd})");
+
+            var progress = new Progress<int>(percentage =>
+            {
+                UpdateProgressBar(percentage, 100);
+            });
+
+            try
+            {
+                var weatherDataList = await _asosWeatherService.GetWeatherDataRangeAsync(startDate, endDate, progress);
+                
+                if (weatherDataList != null && weatherDataList.Any())
+                {
+                    Log($"수집된 기상 데이터 총 {weatherDataList.Count}건을 데이터베이스에 저장 중...");
+                    await _asosDataService.InsertWeatherDataBulkAsync(weatherDataList);
+                    Log($"{taskTitle} 완료: 총 {weatherDataList.Count}건 저장");
+                }
+                else
+                {
+                    Log($"{taskTitle}: 수집된 데이터가 없습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"[오류] {taskTitle} 중 오류 발생: {ex.Message}");
+                log.Error($"{taskTitle} 중 오류 발생", ex);
+                throw;
             }
         }
     }
